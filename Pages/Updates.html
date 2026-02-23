@@ -1,1 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Update Log</title>
 
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --accent: #9aa4b2;
+}
+
+/* Page base */
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background:
+    linear-gradient(rgba(50,50,50,0.8), rgba(50,50,50,0.8)),
+    url("https://i.pinimg.com/originals/11/cf/ee/11cfeef9eaa56c71a6eeb9933f933492.gif");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: #e6e6e6;
+}
+
+/* Container */
+#updates {
+  max-width: 1000px;
+  margin: auto;
+  padding: 32px;
+}
+
+/* Title */
+.title {
+  text-align: center;
+  font-size: 42px;
+  letter-spacing: 4px;
+  margin-bottom: 8px;
+  color: #f0f0f0;
+  text-shadow: 0 0 16px rgba(255,255,255,0.12);
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: #a8a8a8;
+  margin-bottom: 32px;
+}
+
+/* Update card */
+.update {
+  background: rgba(18, 18, 18, 0.26);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 22px;
+  padding: 22px;
+  margin-bottom: 26px;
+
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.35),
+    inset 0 0 0 1px rgba(255,255,255,0.035);
+}
+
+/* Header row */
+.update-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.version {
+  font-size: 20px;
+  font-weight: 600;
+  color: #f2f2f2;
+}
+
+.date {
+  font-size: 13px;
+  color: #9a9a9a;
+}
+
+/* Update text */
+.update ul {
+  padding-left: 18px;
+  line-height: 1.6;
+}
+
+.update li {
+  color: #d6d6d6;
+  margin-bottom: 6px;
+}
+
+/* Divider glow (very subtle) */
+.update::after {
+  content: "";
+  display: block;
+  height: 1px;
+  margin-top: 18px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255,255,255,0.08),
+    transparent
+  );
+}
+</style>
+</head>
+
+<body>
+
+<div id="updates">
+
+  <h1 class="title">UPDATE LOG</h1>
+  <div class="subtitle">// The most recent changes to the site</div>
+
+<!-- v0.4 -->
+  <div class="update">
+    <div class="update-header">
+      <div class="version">v0.4</div>
+      <div class="date">1-22-2026</div>
+    </div>
+    <ul>
+      <li>The site was taken down for a few days for unknown reasons.</li>
+      <li>Yea</li>
+    </ul>
+  </div>
+
+<!-- v0.3 -->
+  <div class="update">
+    <div class="update-header">
+      <div class="version">v0.3</div>
+      <div class="date">1-20-2026</div>
+    </div>
+    <ul>
+      <li>Version 0.3 is now complete.</li>
+      <li>Fixed a few bugs.</li>
+      <li>The Site is now fully functional.</li>
+      <li>The RELEASE of the SITE</li>
+      <li>The site will be updated regularly.</li>
+    </ul>
+  </div>
+
+<!-- v0.2 -->
+  <div class="update">
+    <div class="update-header">
+      <div class="version">v0.2</div>
+      <div class="date">1-16-2026</div>
+    </div>
+    <ul>
+      <li>Version 0.2 is now complete.</li>
+      <li>Rearaged the site.</li>
+      <li>Fixed a few bugs.</li>
+      <li>Add all of the games.</li>
+      <li>Added a few more features.</li>
+      <li>Added a Chat feature.</li>
+    </ul>
+  </div>
+
+  <!-- Update -->
+  <div class="update">
+    <div class="update-header">
+      <div class="version">v0.1</div>
+      <div class="date">2025-11-12</div>
+    </div>
+    <ul>
+      <li>Version 0.1 is now complete.</li>
+      <li>Site has been created</li>
+      <li>Major UI changes to Homepage, Proxies, and Game Page.</li>
+      <li>Refreshed Proxies and Game Page with new links.</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>
