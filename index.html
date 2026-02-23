@@ -1,1 +1,252 @@
+<!DOCTYPE html>
+<html>
+    <head>
 
+    </head>
+    <body class="body">
+        <div id="dashboard">
+
+        <h1 class="title">Snoopys Hub</h1>
+
+        <div class="panel wide">
+            <p style="text-align:center; line-height:1.6;">
+            Welcome to Snoopy’s Hub.
+            <br>
+            (This site is still in development.)
+            <br>
+            Made by ThatOneGuy.
+            </p>
+        </div>
+
+        <div class="grid">
+
+            <!-- Battery -->
+            <div class="panel">
+            <h2>Battery</h2>
+            <div class="battery">
+                <div id="battery-fill"></div>
+            </div>
+            <small id="battery-status">Checking...</small>
+            </div>
+
+            <!-- Date & Time -->
+            <div class="panel">
+            <h2>Date & Time</h2>
+            <div id="date"></div>
+            <div id="time" class="big"></div>
+            </div>
+
+            <!-- News -->
+            <div class="panel">
+            <h2>Daily News</h2>
+            <p>The new Jeffery Game is in Tools • <a href="https://docs.google.com/document/d/1C1bbwI5sEF-M95Y3fv6M5wJEepTqBweAzNdILQVK4VU/edit?usp=sharing" target="_blank">JOIN THE GOOGLE DOCS</a></p>
+            </div>
+
+            <!-- Visits -->
+            <div class="panel">
+            <h2>Site Visits</h2>
+            <p>
+                Today: 0<br>
+                Total: 231<br>
+                Yesterday: 58
+            </p>
+            </div>
+        </div>
+
+        <!-- Footer Buttons -->
+        <div class="footer" id="footer-buttons"></div>
+
+        <div class="foottext"><br>© Snoopy's Hub 2026</div>
+
+        </div>
+
+        <style>
+        :root {
+        --accent: #4da3ff;
+        }
+
+        .foottext{
+            color: #6e6e6e;
+            text-align: center;
+        }
+
+        .body{
+        font-family: "Segoe UI", Arial, sans-serif;
+        background:
+            linear-gradient(rgba(50,50,50,0.8), rgba(50,50,50,0.8)),
+            url("https://i.pinimg.com/originals/11/cf/ee/11cfeef9eaa56c71a6eeb9933f933492.gif");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        color: #e6e6e6;
+        }
+
+        /* Dashboard */
+        #dashboard {
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: transparent;
+        padding: 32px;
+        border-radius: 22px;
+        color: #e6e6e6;
+        max-width: 1000px;
+        margin: auto;
+        }
+
+        /* Title */
+        .title {
+        text-align: center;
+        font-size: 38px;
+        letter-spacing: 4px;
+        margin-bottom: 24px;
+        color: #f0f0f0;
+        }
+
+        /* Panels */
+        .panel {
+        background: rgba(18, 18, 18, 0.28);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow:
+            0 1px 2px rgba(0,0,0,0.35),
+            inset 0 0 0 1px rgba(255,255,255,0.04);
+        }
+
+        .panel.wide {
+        margin-bottom: 28px;
+        }
+
+        .panel h2 {
+        margin-top: 0;
+        font-weight: 500;
+        color: #f2f2f2;
+        }
+
+        /* Grid */
+        .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 22px;
+        }
+
+        .big {
+        font-size: 30px;
+        font-weight: 600;
+        }
+
+        /* Battery */
+        .battery {
+        width: 100%;
+        height: 14px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 12px 0;
+        }
+
+        #battery-fill {
+        height: 100%;
+        width: 0%;
+        background: var(--accent);
+        transition: width 0.6s ease;
+        }
+
+        /* Footer background */
+        .footer {
+        margin-top: 32px;
+        padding: 18px 20px;
+        background: rgba(18,18,18,0.32);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: 20px;
+
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 12px;
+
+        box-shadow:
+            0 1px 2px rgba(0,0,0,0.35),
+            inset 0 0 0 1px rgba(255,255,255,0.04);
+        }
+
+        /* Footer buttons */
+        .footer a {
+        color: #b0b0b0;
+        text-decoration: none;
+        font-size: 14px;
+        padding: 8px 16px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.05);
+        transition: all 0.25s ease;
+        }
+
+        .footer a:hover {
+        color: var(--accent);
+        background: rgba(77,163,255,0.15);
+        }
+
+        /* Links */
+        a {
+        color: var(--accent);
+        text-decoration: none;
+        }
+        </style>
+
+        <script>
+        /* DATE & TIME */
+        function updateTime() {
+        const now = new Date();
+        document.getElementById("date").innerText =
+            now.toLocaleDateString(undefined, {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+            });
+        document.getElementById("time").innerText =
+            now.toLocaleTimeString();
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        /* BATTERY */
+        if ('getBattery' in navigator) {
+        navigator.getBattery().then(battery => {
+            function updateBattery() {
+            const percent = Math.round(battery.level * 100);
+            document.getElementById("battery-fill").style.width = percent + "%";
+            document.getElementById("battery-status").innerText =
+                percent + "% • " + (battery.charging ? "Charging" : "Discharging");
+            }
+            updateBattery();
+            battery.addEventListener("levelchange", updateBattery);
+            battery.addEventListener("chargingchange", updateBattery);
+        });
+        } else {
+        document.getElementById("battery-status").innerText =
+            "Battery not supported";
+        }
+
+        /* FOOTER BUTTONS — EDIT THESE */
+        const footerButtons = [
+        { text: "Home", link: "https://sites.google.com/halifax.k12.va.us/snoopys-hub/home" },
+        { text: "Proxys", link: "https://sites.google.com/halifax.k12.va.us/snoopys-hub/pages/pr0xy" },
+        { text: "Chat", link: "https://sites.google.com/halifax.k12.va.us/snoopys-hub/pages/jjfyb" },
+        { text: "Games", link: "https://sites.google.com/halifax.k12.va.us/snoopys-hub/pages/gms" },
+        { text: "Tools", link: "https://sites.google.com/halifax.k12.va.us/snoopys-hub/pages/er" },
+        { text: "Updates", link: "https://sites.google.com/halifax.k12.va.us/snoopys-hub/pages/ub" },
+        { text: "OS", link: "https://sites.google.com/halifax.k12.va.us/snoopys-hub/pages/os" }
+        ];
+
+        const footer = document.getElementById("footer-buttons");
+        footerButtons.forEach(btn => {
+        const a = document.createElement("a");
+        a.href = btn.link;
+        a.textContent = btn.text;
+        footer.appendChild(a);
+        });
+        </script>
+    </body>
+</html>
