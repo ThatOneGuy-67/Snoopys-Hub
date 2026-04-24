@@ -6,35 +6,79 @@
 
     <!-- POLL Code -->
     <div id="poll">
-        <h2>🔥 Best Option?</h2>
+        <div class="card">
+            <h2>🔥 Best Option?</h2>
 
-        <button onclick="vote('A')">Option A</button>
-        <button onclick="vote('B')">Option B</button>
+            <button onclick="vote('A')">Option A</button>
+            <button onclick="vote('B')">Option B</button>
 
-        <div class="bar"><div id="barA"></div></div>
-        <p id="textA">A: 0 votes</p>
+            <div class="bar"><div id="barA"></div></div>
+            <p id="textA">A: 0 votes</p>
 
-        <div class="bar"><div id="barB"></div></div>
-        <p id="textB">B: 0 votes</p>
+            <div class="bar"><div id="barB"></div></div>
+            <p id="textB">B: 0 votes</p>
+        </div>
     </div>
     <style>
-        #poll {
-        width: 320px;
+        body {
+        margin: 0;
+        height: 100vh;
+        overflow: hidden;
+        background: linear-gradient(135deg, #1a1a1a, #2b2b2b);
+        display: flex;
+        justify-content: center;
+        align-items: center;
         font-family: Arial;
         }
 
+        /* fullscreen overlay */
+        #poll {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        }
+
+        /* glass card */
+        .card {
+        width: 90%;
+        max-width: 400px;
+        padding: 25px;
+        border-radius: 16px;
+
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(12px);
+
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: white;
+        text-align: center;
+        box-shadow: 0 0 25px rgba(0,0,0,0.5);
+        }
+
         button {
-        margin: 5px;
-        padding: 10px;
+        width: 100%;
+        margin: 8px 0;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
         cursor: pointer;
+        font-size: 16px;
+        background: rgba(255,255,255,0.15);
+        color: white;
+        transition: 0.2s;
+        }
+
+        button:hover {
+        background: rgba(255,255,255,0.25);
         }
 
         .bar {
         width: 100%;
-        background: #ddd;
         height: 18px;
+        background: rgba(255,255,255,0.1);
         border-radius: 10px;
-        margin-top: 8px;
+        margin-top: 10px;
         overflow: hidden;
         }
 
@@ -49,6 +93,10 @@
         width: 0%;
         background: #2196F3;
         }
+
+        p {
+        margin: 6px 0;
+        }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -62,17 +110,15 @@
         increment
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 🔴 PUT YOUR FIREBASE CONFIG HERE
+        // 🔴 YOUR CONFIG
         const firebaseConfig = {
-        apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
-        authDomain: "snoopys-hub.firebaseapp.com",
-        databaseURL: "https://snoopys-hub-default-rtdb.firebaseio.com",
-        projectId: "snoopys-hub",
-        storageBucket: "snoopys-hub.firebasestorage.app",
-        messagingSenderId: "711107016273",
-        appId: "1:711107016273:web:c0680189aa61f6b9052a70"
+            apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
+            authDomain: "snoopys-hub.firebaseapp.com",
+            projectId: "snoopys-hub",
+            storageBucket: "snoopys-hub.appspot.com",
+            messagingSenderId: "711107016273",
+            appId: "1:711107016273:web:c0680189aa61f6b9052a70"
         };
-        
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -86,7 +132,7 @@
         }
         }
 
-        // vote function
+        // vote
         window.vote = async function(option) {
         await updateDoc(pollRef, {
             [option]: increment(1)
@@ -94,8 +140,8 @@
         };
 
         // live updates
-        onSnapshot(pollRef, (docSnap) => {
-        const data = docSnap.data();
+        onSnapshot(pollRef, (snap) => {
+        const data = snap.data();
         const total = data.A + data.B;
 
         const a = total ? (data.A / total) * 100 : 0;
