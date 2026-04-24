@@ -240,17 +240,21 @@
             { text: "OS", link: "Pages/OS.html" }
         ];
 
-        footerButtons.forEach(btn => {
-            const a = document.createElement("a");
-        
-            a.href = btn.link;
-            a.textContent = btn.text;
-        
-            a.target = "_blank";           // 👈 opens in new tab
-            a.rel = "noopener noreferrer"; // 👈 security
-        
-            footer.appendChild(a);
-        });
+           window.onload = () => {
+                const footer = document.getElementById("footer-buttons");
+            
+                if (!footer) return;
+            
+                footerButtons.forEach(btn => {
+                    const a = document.createElement("a");
+                    a.href = btn.link;
+                    a.textContent = btn.text;
+                    a.target = "_blank";
+                    a.rel = "noopener noreferrer";
+            
+                    footer.appendChild(a);
+                });
+            };
         </script>
     </body>
 </html>
