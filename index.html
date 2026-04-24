@@ -240,12 +240,16 @@
             { text: "OS", link: "Pages/OS.html" }
         ];
 
-        const footer = document.getElementById("footer-buttons");
         footerButtons.forEach(btn => {
-        const a = document.createElement("a");
-        a.href = btn.link;
-        a.textContent = btn.text;
-        footer.appendChild(a);
+            const a = document.createElement("a");
+        
+            a.href = btn.link;
+            a.textContent = btn.text;
+        
+            a.target = "_blank";           // 👈 opens in new tab
+            a.rel = "noopener noreferrer"; // 👈 security
+        
+            footer.appendChild(a);
         });
         </script>
     </body>
