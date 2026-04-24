@@ -31,31 +31,31 @@
         font-family: Arial;
         }
 
-        /* fullscreen overlay */
         #poll {
         position: fixed;
         inset: 0;
+        z-index: 9999;
         display: flex;
         justify-content: center;
         align-items: center;
+        pointer-events: none;
         }
 
-        /* glass card */
         .card {
-        width: 90%;
-        max-width: 400px;
-        padding: 25px;
+        width: 320px;
+        padding: 20px;
         border-radius: 16px;
 
         background: rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.15);
 
-        border: 1px solid rgba(255, 255, 255, 0.15);
         color: white;
         text-align: center;
-        box-shadow: 0 0 25px rgba(0,0,0,0.5);
-        }
 
+        pointer-events: auto;
+        }
+        
         button {
         width: 100%;
         margin: 8px 0;
@@ -134,9 +134,13 @@
 
         // vote
         window.vote = async function(option) {
-        await updateDoc(pollRef, {
-            [option]: increment(1)
-        });
+            try {
+                await updateDoc(pollRef, {
+                [option]: increment(1)
+                });
+            } catch (e) {
+                console.log("Vote error:", e);
+            }
         };
 
         // live updates
