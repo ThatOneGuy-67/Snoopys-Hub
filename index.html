@@ -7,23 +7,30 @@
     <body class="body">
 
         <!-- POLL Code -->
-        <div id="overlay" class="hidden">
-            <div id="poll">
-                <div class="card">
+        <div id="overlay">
+            <div class="card">
 
                 <button id="closeBtn" onclick="closePoll()">✖</button>
 
                 <h2>🔥 Best Option?</h2>
 
+                <!-- VOTE BUTTONS -->
+                <div id="voteButtons">
                 <button onclick="vote('A')">Option A</button>
                 <button onclick="vote('B')">Option B</button>
+                </div>
 
+                <!-- RESULTS -->
                 <div id="results" class="hidden">
-                    <p id="textA"></p>
-                    <p id="textB"></p>
-                </div>
+
+                <div class="bar"><div id="barA"></div></div>
+                <p id="textA"></p>
+
+                <div class="bar"><div id="barB"></div></div>
+                <p id="textB"></p>
 
                 </div>
+
             </div>
         </div>
         <style>
@@ -31,29 +38,39 @@
             display: none;
             }
 
+            body {
+            margin: 0;
+            font-family: Arial;
+            }
+
+            /* OVERLAY */
             #overlay {
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,0.65);
-            backdrop-filter: blur(6px);
+            backdrop-filter: blur(10px);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 999999;
             }
 
-            #poll .card {
-            width: 320px;
-            padding: 20px;
+            /* GLASS CARD */
+            .card {
+            width: 340px;
+            padding: 22px;
             border-radius: 16px;
+
             background: rgba(255,255,255,0.08);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(14px);
             border: 1px solid rgba(255,255,255,0.15);
+
             color: white;
             text-align: center;
             position: relative;
             }
 
+            /* CLOSE BUTTON */
             #closeBtn {
             position: absolute;
             top: 10px;
@@ -65,21 +82,7 @@
             cursor: pointer;
             }
 
-            .card {
-            width: 320px;
-            padding: 20px;
-            border-radius: 16px;
-
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.15);
-
-            color: white;
-            text-align: center;
-
-            pointer-events: auto;
-            }
-            
+            /* VOTE BUTTONS */
             button {
             width: 100%;
             margin: 8px 0;
@@ -87,23 +90,18 @@
             border: none;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 16px;
             background: rgba(255,255,255,0.15);
             color: white;
-            transition: 0.2s;
             }
 
-            button:hover {
-            background: rgba(255,255,255,0.25);
-            }
-
+            /* BARS */
             .bar {
             width: 100%;
             height: 18px;
             background: rgba(255,255,255,0.1);
             border-radius: 10px;
-            margin-top: 10px;
             overflow: hidden;
+            margin-top: 10px;
             }
 
             #barA {
@@ -116,10 +114,6 @@
             height: 100%;
             width: 0%;
             background: #2196F3;
-            }
-
-            p {
-            margin: 6px 0;
             }
         </style>
         <script type="module">
@@ -134,21 +128,23 @@
             increment
             } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-            // 🔴 YOUR CONFIG
+            // CONFIG
             const firebaseConfig = {
-                apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
-                authDomain: "snoopys-hub.firebaseapp.com",
-                projectId: "snoopys-hub",
-                storageBucket: "snoopys-hub.appspot.com",
-                messagingSenderId: "711107016273",
-                appId: "1:711107016273:web:c0680189aa61f6b9052a70"
+            apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
+            authDomain: "snoopys-hub.firebaseapp.com",
+            projectId: "snoopys-hub",
+            storageBucket: "snoopys-hub.appspot.com",
+            messagingSenderId: "711107016273",
+            appId: "1:711107016273:web:c0680189aa61f6b9052a70"
             };
 
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
             const pollRef = doc(db, "polls", "main");
 
-            // create poll if missing
+            let hasVoted = false;
+
+            // INIT DB
             async function init() {
             const snap = await getDoc(pollRef);
             if (!snap.exists()) {
@@ -156,9 +152,7 @@
             }
             }
 
-            // vote
-            let hasVoted = false;
-
+            // VOTE
             window.vote = async function(option) {
             if (hasVoted) return;
 
@@ -168,15 +162,22 @@
 
             hasVoted = true;
 
-            showResults();
+            // hide buttons
+            document.getElementById("voteButtons").classList.add("hidden");
+
+            // show results
+            document.getElementById("results").classList.remove("hidden");
             };
 
-            function showResults() {
-            document.getElementById("results").classList.remove("hidden");
-            }
+            // CLOSE (ONLY AFTER VOTE)
+            window.closePoll = function () {
+            if (!hasVoted) return; // blocks early close
 
-            // live updates
-           onSnapshot(pollRef, (snap) => {
+            document.getElementById("overlay").style.display = "none";
+            };
+
+            // LIVE RESULTS
+            onSnapshot(pollRef, (snap) => {
             const data = snap.data();
             const total = data.A + data.B;
 
@@ -190,14 +191,13 @@
                 `Option B: ${b.toFixed(1)}% (${data.B})`;
             });
 
-            window.closePoll = function () {
-            document.getElementById("overlay").classList.add("hidden");
-            };
-
-            document.getElementById("overlay").classList.remove("hidden");
-
+            // SAFE INIT (wait for DOM)
             window.addEventListener("load", () => {
             init();
+
+            // show overlay safely
+            const overlay = document.getElementById("overlay");
+            if (overlay) overlay.classList.remove("hidden");
             });
         </script>
         <!-- END POLL Code -->
