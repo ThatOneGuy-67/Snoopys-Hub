@@ -7,10 +7,10 @@
     <body class="body">
 
         <!-- POLL Code -->
-        <div id="overlay">
+        <<div id="overlay">
             <div class="card">
 
-                <button id="closeBtn" onclick="closePoll()">✖</button>
+                <button id="closeBtn" class="hidden" onclick="closePoll()">✖</button>
 
                 <h2>🔥 Best Option?</h2>
 
@@ -24,10 +24,10 @@
                 <div id="results" class="hidden">
 
                 <div class="bar"><div id="barA"></div></div>
-                <p id="textA"></p>
+                <p id="textA">A: 0%</p>
 
                 <div class="bar"><div id="barB"></div></div>
-                <p id="textB"></p>
+                <p id="textB">B: 0%</p>
 
                 </div>
 
@@ -55,7 +55,7 @@
             z-index: 999999;
             }
 
-            /* GLASS CARD */
+            /* CARD */
             .card {
             width: 340px;
             padding: 22px;
@@ -75,14 +75,27 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            background: transparent;
-            border: none;
+
+            width: 34px;
+            height: 34px;
+
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+
+            background: rgba(255,255,255,0.12);
             color: white;
-            font-size: 18px;
+            font-size: 16px;
+
             cursor: pointer;
+            transition: 0.2s;
             }
 
-            /* VOTE BUTTONS */
+            #closeBtn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(1.05);
+            }
+
+            /* BUTTONS */
             button {
             width: 100%;
             margin: 8px 0;
@@ -90,6 +103,7 @@
             border: none;
             border-radius: 10px;
             cursor: pointer;
+
             background: rgba(255,255,255,0.15);
             color: white;
             }
@@ -167,16 +181,19 @@
 
             // show results
             document.getElementById("results").classList.remove("hidden");
+
+            // show close button
+            document.getElementById("closeBtn").classList.remove("hidden");
             };
 
             // CLOSE (ONLY AFTER VOTE)
             window.closePoll = function () {
-            if (!hasVoted) return; // blocks early close
+            if (!hasVoted) return;
 
             document.getElementById("overlay").style.display = "none";
             };
 
-            // LIVE RESULTS
+            // LIVE UPDATES
             onSnapshot(pollRef, (snap) => {
             const data = snap.data();
             const total = data.A + data.B;
@@ -184,20 +201,21 @@
             const a = total ? (data.A / total) * 100 : 0;
             const b = total ? (data.B / total) * 100 : 0;
 
+            // TEXT
             document.getElementById("textA").innerText =
                 `Option A: ${a.toFixed(1)}% (${data.A})`;
 
             document.getElementById("textB").innerText =
                 `Option B: ${b.toFixed(1)}% (${data.B})`;
+
+            // BARS (FIXED)
+            document.getElementById("barA").style.width = a + "%";
+            document.getElementById("barB").style.width = b + "%";
             });
 
-            // SAFE INIT (wait for DOM)
+            // SAFE START
             window.addEventListener("load", () => {
             init();
-
-            // show overlay safely
-            const overlay = document.getElementById("overlay");
-            if (overlay) overlay.classList.remove("hidden");
             });
         </script>
         <!-- END POLL Code -->
