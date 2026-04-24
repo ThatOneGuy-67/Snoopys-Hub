@@ -269,22 +269,36 @@
         }
 
         function loadWeather() {
+
+            const saved = localStorage.getItem("coords");
+
+            if (saved) {
+                const { lat, lon } = JSON.parse(saved);
+                fetchWeather(lat, lon);
+                return;
+            }
+
             navigator.geolocation.getCurrentPosition(pos => {
                 const lat = pos.coords.latitude;
                 const lon = pos.coords.longitude;
 
-                fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit&wind_speed_unit=mph`)
-                .then(res => res.json())
-                .then(data => {
-                    const w = data.current_weather;
+                localStorage.setItem("coords", JSON.stringify({ lat, lon }));
 
-                    document.getElementById("weather-icon").innerText = getIcon(w.weathercode);
-                    document.getElementById("weather-temp").innerText = Math.round(w.temperature) + "°F";
-                    document.getElementById("weather-wind").innerText = Math.round(w.windspeed);
-                });
-
+                fetchWeather(lat, lon);
             }, () => {
                 document.getElementById("weather-desc").innerText = "Location blocked";
+            });
+        }
+
+        function fetchWeather(lat, lon) {
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit&wind_speed_unit=mph`)
+            .then(res => res.json())
+            .then(data => {
+                const w = data.current_weather;
+
+                document.getElementById("weather-icon").innerText = getIcon(w.weathercode);
+                document.getElementById("weather-temp").innerText = Math.round(w.temperature) + "°F";
+                document.getElementById("weather-wind").innerText = Math.round(w.windspeed);
             });
         }
 
