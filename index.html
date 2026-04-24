@@ -7,127 +7,83 @@
     <body class="body">
 
         <!-- POLL Code -->
-        <<div id="overlay">
+        <div id="overlay">
             <div class="card">
 
-                <button id="closeBtn" class="hidden" onclick="closePoll()">✖</button>
+                <h2 id="question">Loading...</h2>
 
-                <h2>What do you want?</h2>
-
-                <!-- VOTE BUTTONS -->
                 <div id="voteButtons">
-                <button onclick="vote('A')">More Movies/TV Shows</button>
-                <button onclick="vote('B')">More Songs</button>
+                <button onclick="vote('A')">Option A</button>
+                <button onclick="vote('B')">Option B</button>
                 </div>
 
-                <!-- RESULTS -->
                 <div id="results" class="hidden">
-
                 <div class="bar"><div id="barA"></div></div>
-                <p id="textA">A: 0%</p>
+                <p id="textA"></p>
 
                 <div class="bar"><div id="barB"></div></div>
-                <p id="textB">B: 0%</p>
-
+                <p id="textB"></p>
                 </div>
+
+                <button id="closeBtn" class="hidden" onclick="closePoll()">✖</button>
 
             </div>
         </div>
         <style>
-            .hidden {
-            display: none;
-            }
+            .hidden { display: none; }
 
-            body {
-            margin: 0;
-            font-family: Arial;
-            }
-
-            /* OVERLAY */
             #overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.65);
+            background: rgba(0,0,0,0.6);
             backdrop-filter: blur(10px);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 999999;
+            z-index: 9999;
             }
 
-            /* CARD */
             .card {
             width: 340px;
-            padding: 22px;
+            padding: 20px;
             border-radius: 16px;
-
             background: rgba(255,255,255,0.08);
             backdrop-filter: blur(14px);
-            border: 1px solid rgba(255,255,255,0.15);
-
             color: white;
             text-align: center;
             position: relative;
             }
 
-            /* CLOSE BUTTON */
-            #closeBtn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-
-            width: 34px;
-            height: 34px;
-
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.2);
-
-            background: rgba(255,255,255,0.12);
-            color: white;
-            font-size: 16px;
-
-            cursor: pointer;
-            transition: 0.2s;
-            }
-
-            #closeBtn:hover {
-            background: rgba(255,255,255,0.25);
-            transform: scale(1.05);
-            }
-
-            /* BUTTONS */
             button {
             width: 100%;
-            margin: 8px 0;
-            padding: 12px;
+            margin: 6px 0;
+            padding: 10px;
             border: none;
             border-radius: 10px;
             cursor: pointer;
-
             background: rgba(255,255,255,0.15);
             color: white;
             }
 
-            /* BARS */
             .bar {
             width: 100%;
-            height: 18px;
+            height: 16px;
             background: rgba(255,255,255,0.1);
             border-radius: 10px;
             overflow: hidden;
             margin-top: 10px;
             }
 
-            #barA {
-            height: 100%;
-            width: 0%;
-            background: #4CAF50;
-            }
+            #barA { height: 100%; width: 0%; background: #4CAF50; }
+            #barB { height: 100%; width: 0%; background: #2196F3; }
 
-            #barB {
-            height: 100%;
-            width: 0%;
-            background: #2196F3;
+            #closeBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             }
         </style>
         <script type="module">
@@ -142,7 +98,6 @@
             increment
             } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-            // CONFIG
             const firebaseConfig = {
             apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
             authDomain: "snoopys-hub.firebaseapp.com",
@@ -154,69 +109,70 @@
 
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
-            const pollRef = doc(db, "polls", "main");
 
+            let currentPollId = null;
             let hasVoted = false;
 
-            // INIT DB
-            async function init() {
-            const snap = await getDoc(pollRef);
-            if (!snap.exists()) {
-                await setDoc(pollRef, { A: 0, B: 0 });
-            }
+            /* LOAD POLL */
+            async function loadPoll() {
+            const snap = await getDoc(doc(db, "polls", "poll_1"));
+            if (!snap.exists()) return;
+
+            const data = snap.data();
+            currentPollId = "poll_1";
+
+            document.getElementById("question").innerText = data.title;
+
+            listen();
             }
 
-            // VOTE
+            /* LIVE UPDATES */
+            function listen() {
+            onSnapshot(doc(db, "polls", currentPollId), (snap) => {
+                const data = snap.data();
+                const total = data.A + data.B;
+
+                const a = total ? (data.A / total) * 100 : 0;
+                const b = total ? (data.B / total) * 100 : 0;
+
+                document.getElementById("barA").style.width = a + "%";
+                document.getElementById("barB").style.width = b + "%";
+
+                document.getElementById("textA").innerText =
+                `Option A: ${a.toFixed(1)}% (${data.A})`;
+
+                document.getElementById("textB").innerText =
+                `Option B: ${b.toFixed(1)}% (${data.B})`;
+            });
+            }
+
+            /* ✅ FIXED VOTE FUNCTION (GLOBAL) */
             window.vote = async function(option) {
+            console.log("clicked:", option);
+
             if (hasVoted) return;
 
-            await updateDoc(pollRef, {
+            const ref = doc(db, "polls", currentPollId);
+
+            await updateDoc(ref, {
                 [option]: increment(1)
             });
 
             hasVoted = true;
 
-            // hide buttons
             document.getElementById("voteButtons").classList.add("hidden");
-
-            // show results
             document.getElementById("results").classList.remove("hidden");
-
-            // show close button
             document.getElementById("closeBtn").classList.remove("hidden");
             };
 
-            // CLOSE (ONLY AFTER VOTE)
+            /* CLOSE */
             window.closePoll = function () {
             if (!hasVoted) return;
-
             document.getElementById("overlay").style.display = "none";
             };
 
-            // LIVE UPDATES
-            onSnapshot(pollRef, (snap) => {
-            const data = snap.data();
-            const total = data.A + data.B;
-
-            const a = total ? (data.A / total) * 100 : 0;
-            const b = total ? (data.B / total) * 100 : 0;
-
-            // TEXT
-            document.getElementById("textA").innerText =
-                `Option A: ${a.toFixed(1)}% (${data.A})`;
-
-            document.getElementById("textB").innerText =
-                `Option B: ${b.toFixed(1)}% (${data.B})`;
-
-            // BARS (FIXED)
-            document.getElementById("barA").style.width = a + "%";
-            document.getElementById("barB").style.width = b + "%";
-            });
-
-            // SAFE START
-            window.addEventListener("load", () => {
-            init();
-            });
+            /* START */
+            window.addEventListener("load", loadPoll);
         </script>
         <!-- END POLL Code -->
 
