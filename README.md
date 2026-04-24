@@ -1,4 +1,4 @@
-# 🐶 Snoopy's Hub
+#  Snoopy's Hub
 
 A custom web dashboard built by **ThatOneGuy**.
 Snoopy’s Hub is a clean, modern homepage that includes tools, games, and useful features in one place.
