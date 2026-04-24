@@ -79,18 +79,6 @@ To enable it:
 
 ---
 
-## 🛠 Customization
-
-You can edit the footer links inside `index.html`:
-
-```js
-const footerButtons = [
-  { text: "Home", link: "index.html" },
-  { text: "Games", link: "Pages/games.html" }
-];
-```
-
----
 
 ## ⚠️ Notes
 
