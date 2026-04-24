@@ -39,18 +39,23 @@
             <!-- News -->
             <div class="panel">
             <h2>Daily News</h2>
-            <p>The new Jeffery Game is in Tools • <a href="https://docs.google.com/document/d/1C1bbwI5sEF-M95Y3fv6M5wJEepTqBweAzNdILQVK4VU/edit?usp=sharing" target="_blank">JOIN THE GOOGLE DOCS</a></p>
+            <p>Idk • <a href="https://docs.google.com/document/d/1C1bbwI5sEF-M95Y3fv6M5wJEepTqBweAzNdILQVK4VU/edit?usp=sharing" target="_blank">JOIN THE GOOGLE DOCS</a></p>
             </div>
 
-            <!-- Visits -->
-            <div class="panel">
-            <h2>Site Visits</h2>
-            <p>
-                Today: 0<br>
-                Total: 231<br>
-                Yesterday: 58
-            </p>
+            <div class="panel weather-card">
+                <div class="weather-top">
+                    <div id="weather-icon">⛅</div>
+                    <div>
+                        <div id="weather-temp">--°F</div>
+                        <div id="weather-desc">Today</div>
+                    </div>
+                </div>
+
+                <div class="weather-sub">
+                    💨 Wind: <span id="weather-wind">--</span> mph
+                </div>
             </div>
+
         </div>
 
         <!-- Footer Buttons -->
@@ -192,6 +197,31 @@
         color: var(--accent);
         text-decoration: none;
         }
+        
+        .weather-card {
+            border-radius: 28px;
+            padding: 22px;
+        }
+
+        .weather-top {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #weather-icon {
+            font-size: 52px;
+        }
+
+        #weather-temp {
+            font-size: 44px;
+            font-weight: 600;
+        }
+
+        .weather-sub {
+            margin-top: 10px;
+            opacity: 0.8;
+        }
         </style>
 
         <script>
@@ -228,6 +258,37 @@
         document.getElementById("battery-status").innerText =
             "Battery not supported";
         }
+
+        function getIcon(code) {
+            if (code === 0) return "☀️";
+            if (code <= 3) return "🌤️";
+            if (code <= 48) return "☁️";
+            if (code <= 67) return "🌧️";
+            if (code <= 82) return "🌦️";
+            return "⛈️";
+        }
+
+        function loadWeather() {
+            navigator.geolocation.getCurrentPosition(pos => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+
+                fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit&wind_speed_unit=mph`)
+                .then(res => res.json())
+                .then(data => {
+                    const w = data.current_weather;
+
+                    document.getElementById("weather-icon").innerText = getIcon(w.weathercode);
+                    document.getElementById("weather-temp").innerText = Math.round(w.temperature) + "°F";
+                    document.getElementById("weather-wind").innerText = Math.round(w.windspeed);
+                });
+
+            }, () => {
+                document.getElementById("weather-desc").innerText = "Location blocked";
+            });
+        }
+
+        loadWeather();
 
         /* FOOTER BUTTONS — EDIT THESE */
         const footerButtons = [
