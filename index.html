@@ -133,12 +133,15 @@
                 if (!snap.exists()) {
                 await setDoc(pollRef, {
                     title: "Best Option?",
+                    A_label: "More Movies/TV Shows",
+                    B_label: "More Music",
                     A: 0,
                     B: 0
                 });
                 }
 
                 pollReady = true;
+                console.log("Poll initialized");
 
                 listenPoll();
 
@@ -150,6 +153,7 @@
 
             } catch (err) {
                 console.error("Init error:", err);
+                document.getElementById("question").innerText = "Poll unavailable";
             }
             }
 
@@ -186,6 +190,17 @@
             onSnapshot(pollRef, (snap) => {
                 const data = snap.data();
                 if (!data) return;
+
+                // Update question and labels
+                if (data.title) {
+                    document.getElementById("question").innerText = data.title;
+                }
+                
+                // Update button labels if they exist
+                const btnA = document.querySelector('#voteButtons button:first-child');
+                const btnB = document.querySelector('#voteButtons button:last-child');
+                if (btnA && data.A_label) btnA.innerText = data.A_label;
+                if (btnB && data.B_label) btnB.innerText = data.B_label;
 
                 const total = data.A + data.B;
 
