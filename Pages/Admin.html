@@ -157,19 +157,21 @@ window.createPoll = async function () {
 
 // 🔄 RESET POLL
 window.resetPoll = async function () {
-  const confirmReset = confirm("Reset all votes?");
+  const confirmReset = confirm("Reset all votes and allow everyone to vote again?");
 
   if (!confirmReset) return;
 
   try {
     const pollRef = doc(db, "polls", "main");
 
+    // Reset votes and add a reset timestamp
     await updateDoc(pollRef, {
       A: 0,
-      B: 0
+      B: 0,
+      lastReset: Date.now()
     });
 
-    alert("Poll reset successfully!");
+    alert("Poll reset successfully! Everyone can vote again.");
   } catch (err) {
     console.error("Reset failed:", err);
     alert("Reset failed — check console");
