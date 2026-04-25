@@ -18,11 +18,11 @@
                 </div>
 
                 <div id="results" class="hidden">
-                <div class="bar"><div id="barA"></div></div>
                 <p id="textA"></p>
+                <div class="bar"><div id="barA"></div></div>
 
-                <div class="bar"><div id="barB"></div></div>
                 <p id="textB"></p>
+                <div class="bar"><div id="barB"></div></div>
             </div>
 
             <button id="closeBtn" class="hidden">X</button>
@@ -256,8 +256,8 @@
                 const textA = document.getElementById("textA");
                 const textB = document.getElementById("textB");
 
-                if (textA) textA.innerText = `A: ${data.A} (${a.toFixed(1)}%)`;
-                if (textB) textB.innerText = `B: ${data.B} (${b.toFixed(1)}%)`;
+                if (textA) textA.innerText = `More Movies: ${data.A} (${a.toFixed(1)}%)`;
+                if (textB) textB.innerText = `More Music: ${data.B} (${b.toFixed(1)}%)`;
             });
             }
 
