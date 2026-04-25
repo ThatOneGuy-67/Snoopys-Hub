@@ -86,141 +86,152 @@
             border-radius: 8px;
             }
         </style>
-        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+            import {
+            getFirestore,
+            doc,
+            getDoc,
+            setDoc,
+            updateDoc,
+            onSnapshot,
+            increment
+            } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        <script>
-        console.log("POLL LOADING");
+            console.log("POLL SCRIPT LOADED");
 
-        // =====================
-        // 🔥 FIREBASE SETUP
-        // =====================
-        const firebaseConfig = {
-        apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
-        authDomain: "snoopys-hub.firebaseapp.com",
-        projectId: "snoopys-hub",
-        storageBucket: "snoopys-hub.appspot.com",
-        messagingSenderId: "711107016273",
-        appId: "1:711107016273:web:c0680189aa61f6b9052a70"
-        };
+            // =====================
+            // 🔥 FIREBASE SETUP
+            // =====================
+            const firebaseConfig = {
+            apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
+            authDomain: "snoopys-hub.firebaseapp.com",
+            projectId: "snoopys-hub",
+            storageBucket: "snoopys-hub.appspot.com",
+            messagingSenderId: "711107016273",
+            appId: "1:711107016273:web:c0680189aa61f6b9052a70"
+            };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
 
-        // =====================
-        // 🗳 POLL SETUP
-        // =====================
-        const pollRef = db.collection("polls").doc("main");
-
-        let hasVoted = false;
-
-        // =====================
-        // 🔥 INIT POLL
-        // =====================
-        import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        async function initPoll() {
-        try {
+            // =====================
+            // 🗳 POLL STATE
+            // =====================
             const pollRef = doc(db, "polls", "main");
 
-            const snap = await getDoc(pollRef);
+            let pollReady = false;
+            let hasVoted = false;
 
-            if (!snap.exists()) {
-            await setDoc(pollRef, {
-                title: "Best Option?",
-                A: 0,
-                B: 0,
-                A_label: "Option A",
-                B_label: "Option B"
-            });
+            // =====================
+            // 🔥 INIT POLL (CREATE IF NONE)
+            // =====================
+            async function initPoll() {
+            try {
+                const snap = await getDoc(pollRef);
 
-            console.log("Poll created");
-            } else {
-            console.log("Poll already exists");
+                if (!snap.exists()) {
+                await setDoc(pollRef, {
+                    title: "Best Option?",
+                    A: 0,
+                    B: 0
+                });
+                }
+
+                pollReady = true;
+
+                listenPoll();
+
+                // restore vote lock
+                if (localStorage.getItem("voted_main")) {
+                hasVoted = true;
+                showResultsOnly();
+                }
+
+            } catch (err) {
+                console.error("Init error:", err);
+            }
             }
 
-        } catch (err) {
-            console.error("Poll init error:", err);
-        }
-        }
+            // =====================
+            // 🗳 VOTE FUNCTION
+            // =====================
+            window.vote = async function(option) {
+            if (!pollReady) {
+                alert("Poll still loading...");
+                return;
+            }
 
-        initPoll();
+            if (hasVoted) return;
 
-        // =====================
-        // 🚫 CHECK IF USER ALREADY VOTED
-        // =====================
-        if (localStorage.getItem("voted_main")) {
-        hasVoted = true;
-        showResultsOnly();
-        }
+            try {
+                await updateDoc(pollRef, {
+                [option]: increment(1)
+                });
 
-        // =====================
-        // 🗳 VOTE FUNCTION
-        // =====================
-        function vote(option) {
-        if (hasVoted) return;
+                localStorage.setItem("voted_main", option);
+                hasVoted = true;
 
-        pollRef.update({
-            [option]: firebase.firestore.FieldValue.increment(1)
-        });
+                showResultsOnly();
 
-        // 💾 SAVE VOTE (prevents revote)
-        localStorage.setItem("voted_main", option);
+            } catch (err) {
+                console.error("Vote error:", err);
+            }
+            };
 
-        hasVoted = true;
-        showResultsOnly();
-        }
+            // =====================
+            // 📊 LIVE POLL UPDATES
+            // =====================
+            function listenPoll() {
+            onSnapshot(pollRef, (snap) => {
+                const data = snap.data();
+                if (!data) return;
 
-        window.vote = vote;
+                const total = data.A + data.B;
 
-        // =====================
-        // 📊 LIVE UPDATES
-        // =====================
-        pollRef.onSnapshot(doc => {
-        const data = doc.data();
-        const total = data.A + data.B;
+                const a = total ? (data.A / total) * 100 : 0;
+                const b = total ? (data.B / total) * 100 : 0;
 
-        const a = total ? (data.A / total) * 100 : 0;
-        const b = total ? (data.B / total) * 100 : 0;
+                const barA = document.getElementById("barA");
+                const barB = document.getElementById("barB");
 
-        const barA = document.getElementById("barA");
-        const barB = document.getElementById("barB");
+                if (barA) barA.style.width = a + "%";
+                if (barB) barB.style.width = b + "%";
 
-        if (barA && barB) {
-            barA.style.width = a + "%";
-            barB.style.width = b + "%";
-        }
+                const textA = document.getElementById("textA");
+                const textB = document.getElementById("textB");
 
-        const textA = document.getElementById("textA");
-        const textB = document.getElementById("textB");
+                if (textA) textA.innerText = `A: ${data.A} (${a.toFixed(1)}%)`;
+                if (textB) textB.innerText = `B: ${data.B} (${b.toFixed(1)}%)`;
+            });
+            }
 
-        if (textA && textB) {
-            textA.innerText = `A: ${data.A} (${a.toFixed(1)}%)`;
-            textB.innerText = `B: ${data.B} (${b.toFixed(1)}%)`;
-        }
-        });
+            // =====================
+            // 🎯 UI CONTROL
+            // =====================
+            function showResultsOnly() {
+            const buttons = document.getElementById("voteButtons");
+            const results = document.getElementById("results");
+            const closeBtn = document.getElementById("closeBtn");
 
-        // =====================
-        // 🎯 UI CONTROL
-        // =====================
-        function showResultsOnly() {
-        const buttons = document.getElementById("voteButtons");
-        const results = document.getElementById("results");
-        const closeBtn = document.getElementById("closeBtn");
+            if (buttons) buttons.style.display = "none";
+            if (results) results.classList.remove("hidden");
+            if (closeBtn) closeBtn.classList.remove("hidden");
+            }
 
-        if (buttons) buttons.style.display = "none";
-        if (results) results.classList.remove("hidden");
-        if (closeBtn) closeBtn.classList.remove("hidden");
-        }
+            // =====================
+            // ❌ CLOSE OVERLAY
+            // =====================
+            window.closePoll = function () {
+            const overlay = document.getElementById("overlay");
+            if (overlay) overlay.style.display = "none";
+            };
 
-        // =====================
-        // ❌ CLOSE OVERLAY
-        // =====================
-        function closePoll() {
-        document.getElementById("overlay").style.display = "none";
-        }
+            // =====================
+            // 🚀 START
+            // =====================
+            initPoll();
 
-        window.closePoll = closePoll;
         </script>
         <!-- END POLL Code -->
 
