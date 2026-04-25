@@ -52,6 +52,7 @@
   <input id="optionB" placeholder="Option B" />
 
   <button onclick="createPoll()">Create Poll</button>
+  <button onclick="resetPoll()" style="background:#ff4d4d;">Reset Poll Votes</button>
   <button onclick="logout()">Logout</button>
 </div>
 
@@ -139,6 +140,30 @@ window.createPoll = async function () {
   });
 
   alert("Poll Created!");
+};
+</script>
+
+<script>
+import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+window.resetPoll = async function () {
+  const confirmReset = confirm("Reset all votes?");
+
+  if (!confirmReset) return;
+
+  try {
+    const pollRef = doc(db, "polls", "main");
+
+    await updateDoc(pollRef, {
+      A: 0,
+      B: 0
+    });
+
+    alert("Poll reset successfully!");
+  } catch (err) {
+    console.error("Reset failed:", err);
+    alert("Reset failed — check console");
+  }
 };
 </script>
 
