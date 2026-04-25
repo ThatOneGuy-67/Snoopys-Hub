@@ -13,8 +13,8 @@
                 <h2 id="question">What do you want? </h2>
 
                 <div id="voteButtons">
-                <button onclick="vote('A')">More Movies/TV Shows</button>
-                <button onclick="vote('B')">More Music</button>
+                <button id="btnA">More Movies</button>
+                <button id="btnB">More Music</button>
                 </div>
 
                 <div id="results" class="hidden">
@@ -25,7 +25,7 @@
                 <p id="textB"></p>
             </div>
 
-            <button id="closeBtn" onclick="closePoll()" class="hidden">X</button>
+            <button id="closeBtn" class="hidden">X</button>
 
             </div>
         </div>
@@ -40,7 +40,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
+            z-index: 9998;
             }
 
             .card {
@@ -63,6 +63,12 @@
             cursor: pointer;
             background: rgba(255,255,255,0.15);
             color: white;
+            position: relative;
+            z-index: 10000;
+            }
+
+            button:hover {
+            background: rgba(255,255,255,0.3);
             }
 
             .bar {
@@ -132,7 +138,7 @@
 
                 if (!snap.exists()) {
                 await setDoc(pollRef, {
-                    title: "Best Option?",
+                    title: "What do you want?",
                     A_label: "More Movies/TV Shows",
                     B_label: "More Music",
                     A: 0,
@@ -145,10 +151,23 @@
 
                 listenPoll();
 
-                // restore vote lock
-                if (localStorage.getItem("voted_main")) {
-                hasVoted = true;
-                showResultsOnly();
+                // Check if poll was reset since we last voted
+                const data = snap.data();
+                const storedVote = localStorage.getItem("voted_main");
+                const storedReset = localStorage.getItem("pollResetTime");
+                
+                if (storedVote && data?.lastReset) {
+                    // If poll was reset after we voted, clear the vote
+                    if (data.lastReset > storedReset) {
+                        localStorage.removeItem("voted_main");
+                        localStorage.removeItem("pollResetTime");
+                    } else {
+                        hasVoted = true;
+                        showResultsOnly();
+                    }
+                } else if (storedVote) {
+                    hasVoted = true;
+                    showResultsOnly();
                 }
 
             } catch (err) {
@@ -161,26 +180,47 @@
             // 🗳 VOTE FUNCTION
             // =====================
             window.vote = async function(option) {
-            if (!pollReady) {
-                alert("Poll still loading...");
-                return;
-            }
+                console.log("Vote called:", option);
+                if (!pollReady) {
+                    alert("Poll still loading...");
+                    return;
+                }
 
-            if (hasVoted) return;
+                if (hasVoted) {
+                    console.log("Already voted");
+                    return;
+                }
 
-            try {
-                await updateDoc(pollRef, {
-                [option]: increment(1)
-                });
+                try {
+                    // Get current poll data first
+                    const snap = await getDoc(pollRef);
+                    const data = snap.data();
+                    console.log("Current poll data:", data);
+                    
+                    if (!data) {
+                        alert("Poll not found. Please refresh.");
+                        return;
+                    }
+                    
+                    const currentVal = data[option] || 0;
+                    
+                    // Update with incremented value using setDoc for more reliability
+                    await setDoc(pollRef, {
+                        [option]: currentVal + 1
+                    }, { merge: true });
 
-                localStorage.setItem("voted_main", option);
-                hasVoted = true;
+                    // Store vote and the reset time to check against later
+                    localStorage.setItem("voted_main", option);
+                    localStorage.setItem("pollResetTime", data.lastReset || 0);
+                    hasVoted = true;
 
-                showResultsOnly();
+                    showResultsOnly();
+                    console.log("Vote recorded successfully");
 
-            } catch (err) {
-                console.error("Vote error:", err);
-            }
+                } catch (err) {
+                    console.error("Vote error:", err);
+                    alert("Failed to vote: " + err.message);
+                }
             };
 
             // =====================
@@ -246,6 +286,26 @@
             // 🚀 START
             // =====================
             initPoll();
+
+            // Attach click listeners directly for better reliability
+            setTimeout(() => {
+                const btnA = document.getElementById('btnA');
+                const btnB = document.getElementById('btnB');
+                const closeBtn = document.getElementById('closeBtn');
+                
+                if (btnA) {
+                    btnA.addEventListener('click', () => window.vote('A'));
+                    console.log("Button A attached");
+                }
+                if (btnB) {
+                    btnB.addEventListener('click', () => window.vote('B'));
+                    console.log("Button B attached");
+                }
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => window.closePoll());
+                    console.log("Close button attached");
+                }
+            }, 100);
 
         </script>
         <!-- END POLL Code -->
