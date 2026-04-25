@@ -68,7 +68,8 @@ import {
 import {
   getFirestore,
   doc,
-  setDoc
+  setDoc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -129,23 +130,32 @@ window.createPoll = async function () {
   const a = document.getElementById("optionA").value;
   const b = document.getElementById("optionB").value;
 
-  const id = "poll_" + Date.now();
+  if (!title || !a || !b) {
+    alert("Please fill in all fields");
+    return;
+  }
 
-  await setDoc(doc(db, "polls", id), {
-    title,
-    A_label: a,
-    B_label: b,
-    A: 0,
-    B: 0
-  });
+  try {
+    // Update the main poll with new values
+    await setDoc(doc(db, "polls", "main"), {
+      title: title,
+      A_label: a,
+      B_label: b,
+      A: 0,
+      B: 0
+    }, { merge: true });
 
-  alert("Poll Created!");
+    alert("Poll Created!");
+    
+    // Clear localStorage so users can vote again
+    localStorage.removeItem("voted_main");
+  } catch (err) {
+    console.error("Create poll error:", err);
+    alert("Failed to create poll");
+  }
 };
-</script>
 
-<script>
-import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+// 🔄 RESET POLL
 window.resetPoll = async function () {
   const confirmReset = confirm("Reset all votes?");
 
