@@ -130,23 +130,32 @@ function generate() {
 
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
 <style>
 .bnav{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
 display:flex;gap:16px;padding:8px 14px;
 background:rgba(18,18,18,.65);backdrop-filter:blur(10px);
-border-radius:16px;box-shadow:0 4px 18px rgba(0,0,0,.35);z-index:9999}
-.bnav a{color:#e6e6e6;font-size:16px;transition:.2s}
+border-radius:16px;z-index:9999}
+.bnav a{color:#e6e6e6;font-size:16px;position:relative;transition:.2s}
 .bnav a:hover{color:#fff;transform:scale(1.2)}
+.bnav a::after{
+content:attr(data);
+position:absolute;bottom:140%;left:50%;
+transform:translateX(-50%);
+background:#111;color:#fff;
+padding:3px 6px;font-size:11px;
+border-radius:6px;opacity:0;
+white-space:nowrap;transition:.2s
+}
+.bnav a:hover::after{opacity:1}
 </style>
-
 <div class="bnav">
-  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/index.html"><i class="fa fa-home"></i></a>
-  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Games.html"><i class="fa fa-gamepad"></i></a>
-  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Chat.html"><i class="fa fa-message"></i></a>
-  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Links.html"><i class="fa fa-link"></i></a>
-  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Spotify.html"><i class="fa fa-music"></i></a>
-  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Tools.html"><i class="fa fa-wrench"></i></a>
+  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/index.html" data="Home"><i class="fa-solid fa-house"></i></a>
+  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Games.html" data="Games"><i class="fa-solid fa-gamepad"></i></a>
+  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Movies.html" data="Movies"><i class="fa-solid fa-film"></i></a>
+  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Chat.html" data="Chat"><i class="fa-solid fa-message"></i></a>
+  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Links.html" data="Links"><i class="fa-solid fa-link"></i></a>
+  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Spotify.html" data="Music"><i class="fa-solid fa-music"></i></a>
+  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Tools.html" data="Tools"><i class="fa-solid fa-wrench"></i></a>
 </div>
 </body>
 </html>
