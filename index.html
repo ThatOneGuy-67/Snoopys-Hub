@@ -398,14 +398,22 @@
         <!-- END ANNOUNCEMENT -->
 
 
-        <!-- ===================== UI BUTTON ===================== -->
-        <div class="settings-btn" onclick="openUI('settings')">⚙️ Settings</div>
+
+
+
+        <!-- ===================== BUTTON ===================== -->
+        <div class="settings-btn" onclick="openUI('settings')">⚙️ Menu</div>
 
         <!-- ===================== OVERLAY ===================== -->
         <div id="ui-overlay" class="hidden" onclick="if(event.target === this) closeUI()">
+
         <div id="ui-card" onclick="event.stopPropagation()">
 
+            <!-- TOP BAR -->
+            <div class="ui-topbar">
+            <div class="ui-title">Snoopy’s Hub</div>
             <button id="ui-close" onclick="closeUI()">✕</button>
+            </div>
 
             <!-- TABS -->
             <div class="ui-tabs">
@@ -413,7 +421,7 @@
             <button onclick="switchTab('badges')">🏆 Achievements</button>
             </div>
 
-            <!-- SETTINGS -->
+            <!-- SETTINGS TAB -->
             <div id="tab-settings" class="ui-tab">
 
             <div class="settings-section">
@@ -425,19 +433,14 @@
 
             <div class="settings-section">
                 <h3>🔔 Notifications</h3>
-                <label><input type="checkbox" id="notif-poll" onchange="saveNotif('poll')"> Poll alerts</label><br>
+                <label><input type="checkbox" id="notif-poll" onchange="saveNotif('poll')"> Polls</label><br>
                 <label><input type="checkbox" id="notif-announce" onchange="saveNotif('announce')"> Announcements</label><br>
-                <label><input type="checkbox" id="notif-badge" onchange="saveNotif('badge')"> Badge unlocks</label>
-            </div>
-
-            <div class="settings-section">
-                <h3>🗑️ Data</h3>
-                <button onclick="clearAllData()">Clear All Data</button>
+                <label><input type="checkbox" id="notif-badge" onchange="saveNotif('badge')"> Badges</label>
             </div>
 
             </div>
 
-            <!-- BADGES -->
+            <!-- BADGES TAB -->
             <div id="tab-badges" class="ui-tab hidden">
             <p id="badge-progress"></p>
             <div id="badges-grid"></div>
@@ -446,70 +449,71 @@
         </div>
         </div>
 
-        <!-- ===================== NOTIFICATIONS ===================== -->
-        <div id="notification-container"></div>
-
         <!-- ===================== STYLES ===================== -->
         <style>
+
         .settings-btn {
         position: fixed;
         top: 80px;
         left: 20px;
-        background: rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.08);
         padding: 10px 16px;
         border-radius: 20px;
         cursor: pointer;
-        z-index: 100;
+        z-index: 999;
         }
 
         #ui-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.8);
+        background: rgba(0,0,0,0.75);
         display: flex;
         justify-content: center;
         align-items: center;
-        z-index: 10000;
+        z-index: 9999;
         }
 
         #ui-card {
         width: 420px;
         max-height: 80vh;
         overflow-y: auto;
-        background: rgba(30,30,30,0.95);
-        border-radius: 16px;
+        background: rgba(25,25,25,0.95);
+        border-radius: 18px;
         padding: 20px;
-        position: relative;
         color: white;
         }
 
         .hidden { display: none !important; }
 
+        .ui-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        }
+
         #ui-close {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: red;
-        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
         border: none;
+        background: rgba(255,80,80,0.8);
+        color: white;
         cursor: pointer;
         }
 
         .ui-tabs {
         display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
+        gap: 8px;
+        margin-bottom: 10px;
         }
 
         .ui-tabs button {
         flex: 1;
         padding: 8px;
-        border-radius: 8px;
-        background: rgba(255,255,255,0.1);
         border: none;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.08);
         color: white;
         cursor: pointer;
         }
@@ -518,9 +522,10 @@
         background: rgba(255,255,255,0.05);
         padding: 12px;
         margin-bottom: 10px;
-        border-radius: 10px;
+        border-radius: 12px;
         }
 
+        /* BADGES */
         #badges-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -530,7 +535,7 @@
         .badge {
         text-align: center;
         padding: 10px;
-        border-radius: 10px;
+        border-radius: 12px;
         background: rgba(255,255,255,0.05);
         opacity: 0.4;
         }
@@ -539,11 +544,14 @@
         opacity: 1;
         background: rgba(255,215,0,0.15);
         }
+
         </style>
 
         <!-- ===================== SCRIPT ===================== -->
         <script>
-        function openUI(tab = "settings") {
+
+        /* ===================== UI ===================== */
+        function openUI(tab="settings") {
         document.getElementById("ui-overlay").classList.remove("hidden");
         switchTab(tab);
         }
@@ -555,70 +563,106 @@
         function switchTab(tab) {
         document.getElementById("tab-settings").classList.add("hidden");
         document.getElementById("tab-badges").classList.add("hidden");
-        document.getElementById("tab-" + tab).classList.remove("hidden");
+
+        const el = document.getElementById("tab-" + tab);
+        if (el) el.classList.remove("hidden");
 
         if (tab === "badges") showBadges();
         }
 
-        /* ===== THEME ===== */
+        /* ===================== SETTINGS SAVE ===================== */
+        function saveNotif(type) {
+        const settings = JSON.parse(localStorage.getItem("notifSettings") || "{}");
+        settings[type] = document.getElementById("notif-" + type).checked;
+        localStorage.setItem("notifSettings", JSON.stringify(settings));
+        }
+
+        /* ===================== SETTINGS LOAD ===================== */
+        function loadSettings() {
+        const settings = JSON.parse(localStorage.getItem("notifSettings") || "{}");
+
+        document.getElementById("notif-poll").checked = settings.poll ?? true;
+        document.getElementById("notif-announce").checked = settings.announce ?? true;
+        document.getElementById("notif-badge").checked = settings.badge ?? true;
+        }
+
+        /* ===================== THEME ===================== */
         function setTheme(theme) {
-        document.body.classList.remove("light-theme", "neon-theme");
-        if (theme !== "dark") document.body.classList.add(theme + "-theme");
+        document.documentElement.classList.remove("theme-light","theme-neon");
+
+        if (theme === "light") document.documentElement.classList.add("theme-light");
+        if (theme === "neon") document.documentElement.classList.add("theme-neon");
+
         localStorage.setItem("siteTheme", theme);
         }
 
-        (function loadTheme() {
+        function loadTheme() {
         const t = localStorage.getItem("siteTheme") || "dark";
-        if (t !== "dark") document.body.classList.add(t + "-theme");
-        })();
 
-        /* ===== SETTINGS ===== */
-        function saveNotif(type) {
-        const s = JSON.parse(localStorage.getItem("notifSettings") || "{}");
-        s[type] = document.getElementById("notif-" + type).checked;
-        localStorage.setItem("notifSettings", JSON.stringify(s));
+        document.documentElement.classList.remove("theme-light","theme-neon");
+
+        if (t === "light") document.documentElement.classList.add("theme-light");
+        if (t === "neon") document.documentElement.classList.add("theme-neon");
         }
 
-        /* ===== BADGES ===== */
+        /* ===================== BADGES DATA ===================== */
         const badges = [
         { id:"home", icon:"🏠", name:"Home Sweet Home", req:3 },
-        { id:"games", icon:"🎮", name:"Gamer", req:3 },
-        { id:"movies", icon:"🎬", name:"Movie Fan", req:3 },
-        { id:"music", icon:"🎵", name:"Music Lover", req:3 },
-        { id:"tools", icon:"🔧", name:"Tool User", req:3 },
-        { id:"chat", icon:"💬", name:"Social Butterfly", req:3 },
-        { id:"links", icon:"🔗", name:"Link Explorer", req:3 },
-        { id:"updates", icon:"📰", name:"News Reader", req:3 },
-        { id:"os", icon:"💻", name:"OS Tester", req:3 }
+        { id:"games", icon:"🎮", name:"Gamer", req:5 },
+        { id:"music", icon:"🎵", name:"Music Lover", req:7 },
+        { id:"ghost", icon:"👻", name:"???", req:10, secret:true },
+        { id:"locked", icon:"🔒", name:"Unknown", req:12, secret:true }
         ];
 
-        function showBadges() {
+        /* ===================== TRACK VISITS ===================== */
+        function trackVisit(page) {
+        let v = parseInt(localStorage.getItem("visit_" + page) || "0") + 1;
+        localStorage.setItem("visit_" + page, v);
+
         const unlocked = JSON.parse(localStorage.getItem("unlockedBadges") || "[]");
+        const badge = badges.find(b => b.id === page);
+
+        if (!badge) return;
+
+        if (v >= badge.req && !unlocked.includes(page)) {
+            unlocked.push(page);
+            localStorage.setItem("unlockedBadges", JSON.stringify(unlocked));
+        }
+        }
+
+        /* ===================== SHOW BADGES (FIXED) ===================== */
+        function showBadges() {
+        const grid = document.getElementById("badges-grid");
+        const unlocked = JSON.parse(localStorage.getItem("unlockedBadges") || "[]");
+
+        grid.innerHTML = "";
+
+        badges.forEach(b => {
+            const v = parseInt(localStorage.getItem("visit_" + b.id) || "0");
+            const ok = unlocked.includes(b.id);
+
+            const el = document.createElement("div");
+            el.className = "badge" + (ok ? " unlocked" : "");
+
+            el.innerHTML = `
+            <div style="font-size:26px">${ok ? b.icon : "❓"}</div>
+            <div>${ok ? b.name : "???"}</div>
+            <small>${ok ? "✔ unlocked" : v + "/" + b.req}</small>
+            `;
+
+            grid.appendChild(el);
+        });
 
         document.getElementById("badge-progress").innerText =
             `${unlocked.length} / ${badges.length} unlocked`;
-
-        document.getElementById("badges-grid").innerHTML = badges.map(b => {
-            const visits = parseInt(localStorage.getItem("visit_" + b.id) || "0");
-            const ok = unlocked.includes(b.id);
-
-            return `
-            <div class="badge ${ok ? "unlocked" : ""}">
-                <div style="font-size:28px">${b.icon}</div>
-                <div>${b.name}</div>
-                <small>${ok ? "✔" : visits + "/" + b.req}</small>
-            </div>
-            `;
-        }).join("");
         }
 
-        /* ===== CLEAR DATA ===== */
-        function clearAllData() {
-        if (confirm("Clear everything?")) {
-            localStorage.clear();
-            location.reload();
-        }
-        }
+        /* ===================== INIT ===================== */
+        window.addEventListener("load", () => {
+        loadSettings();
+        loadTheme();
+        });
+
         </script>
 
         <div id="dashboard">
@@ -948,6 +992,9 @@
                     footer.appendChild(a);
                 });
             };
+        </script>
+        <script>
+        trackVisit("home");
         </script>
     </body>
 </html>
