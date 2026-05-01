@@ -398,34 +398,231 @@
         <!-- END ANNOUNCEMENT -->
 
 
-        <!-- Theme Toggle -->
-        <div class="theme-toggle" title="Change theme">
-            <button onclick="setTheme('dark')" class="theme-btn" id="theme-dark">🌙</button>
-            <button onclick="setTheme('light')" class="theme-btn" id="theme-light">☀️</button>
-            <button onclick="setTheme('neon')" class="theme-btn" id="theme-neon">💜</button>
+        <!-- Settings Panel -->
+        <div class="settings-btn" onclick="toggleSettings()">⚙️ Settings</div>
+        
+        <div id="settings-overlay" onclick="if(event.target === this) toggleSettings()">
+            <div class="settings-card">
+                <div class="settings-header">
+                    <h2>⚙️ Settings</h2>
+                    <button class="settings-close" onclick="toggleSettings()">✕</button>
+                </div>
+                
+                <!-- Theme Section -->
+                <div class="settings-section">
+                    <h3>🎨 Theme</h3>
+                    <div class="theme-options">
+                        <button onclick="setTheme('dark')" class="theme-option" id="set-dark">
+                            <span>🌙</span>
+                            <small>Dark</small>
+                        </button>
+                        <button onclick="setTheme('light')" class="theme-option" id="set-light">
+                            <span>☀️</span>
+                            <small>Light</small>
+                        </button>
+                        <button onclick="setTheme('neon')" class="theme-option" id="set-neon">
+                            <span>💜</span>
+                            <small>Neon</small>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Badges Section -->
+                <div class="settings-section">
+                    <h3>🏆 Badges</h3>
+                    <p class="badge-summary" id="badge-summary">0 / 9 unlocked</p>
+                    <button class="settings-action" onclick="showBadges()">View All Badges</button>
+                </div>
+                
+                <!-- Notifications Section -->
+                <div class="settings-section">
+                    <h3>🔔 Notifications</h3>
+                    <div class="notif-toggle">
+                        <label>
+                            <input type="checkbox" id="notif-poll" onchange="saveNotifSetting('poll')">
+                            Poll alerts
+                        </label>
+                    </div>
+                    <div class="notif-toggle">
+                        <label>
+                            <input type="checkbox" id="notif-announce" onchange="saveNotifSetting('announce')">
+                            Announcements
+                        </label>
+                    </div>
+                    <div class="notif-toggle">
+                        <label>
+                            <input type="checkbox" id="notif-badge" onchange="saveNotifSetting('badge')">
+                            Badge unlocks
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Clear Data -->
+                <div class="settings-section">
+                    <h3>🗑️ Data</h3>
+                    <button class="settings-action danger" onclick="clearAllData()">Clear All Data</button>
+                </div>
+            </div>
         </div>
+        
         <style>
-            .theme-toggle {
+            .settings-btn {
                 position: fixed;
                 top: 80px;
-                right: 20px;
-                display: flex;
-                gap: 8px;
+                left: 20px;
+                background: rgba(255,255,255,0.1);
+                padding: 10px 16px;
+                border-radius: 20px;
+                cursor: pointer;
+                font-size: 14px;
                 z-index: 100;
+                transition: all 0.3s;
             }
-            .theme-btn {
-                width: 40px !important;
-                height: 40px;
+            .settings-btn:hover {
+                background: rgba(77,163,255,0.3);
+                transform: scale(1.05);
+            }
+            #settings-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.8);
+                display: none;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            }
+            #settings-overlay.show { display: flex; }
+            .settings-card {
+                background: rgba(30,30,30,0.95);
+                padding: 25px;
+                border-radius: 20px;
+                max-width: 380px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+            .settings-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+            .settings-header h2 { margin: 0; font-size: 22px; }
+            .settings-close {
+                width: 30px !important;
+                height: 30px;
                 padding: 0 !important;
-                font-size: 20px;
                 border-radius: 50% !important;
                 background: rgba(255,255,255,0.1) !important;
-                border: 2px solid transparent !important;
             }
-            .theme-btn.active {
-                border-color: #fff !important;
+            .settings-section {
+                background: rgba(255,255,255,0.05);
+                border-radius: 12px;
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            .settings-section h3 {
+                margin: 0 0 12px 0;
+                font-size: 14px;
+                color: #aaa;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+            .theme-options {
+                display: flex;
+                gap: 10px;
+            }
+            .theme-option {
+                flex: 1;
+                padding: 12px 8px !important;
+                border-radius: 10px !important;
+                background: rgba(255,255,255,0.08) !important;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 5px;
+            }
+            .theme-option span { font-size: 24px; }
+            .theme-option small { font-size: 11px; color: #888; }
+            .theme-option.active {
                 background: rgba(77,163,255,0.3) !important;
+                border: 2px solid #4da3ff !important;
             }
+            .badge-summary {
+                font-size: 14px;
+                color: #ffd700;
+                margin: 0 0 10px 0;
+            }
+            .settings-action {
+                width: 100% !important;
+                padding: 10px !important;
+                background: rgba(77,163,255,0.2) !important;
+                border-radius: 8px !important;
+            }
+            .settings-action.danger {
+                background: rgba(255,80,80,0.2) !important;
+            }
+            .notif-toggle {
+                margin-bottom: 10px;
+            }
+            .notif-toggle label {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                cursor: pointer;
+            }
+            .notif-toggle input {
+                width: 18px;
+                height: 18px;
+            }
+        </style>
+        <script>
+            function toggleSettings() {
+                const overlay = document.getElementById('settings-overlay');
+                overlay.classList.toggle('show');
+                if (overlay.classList.contains('show')) {
+                    updateSettingsUI();
+                }
+            }
+            
+            function updateSettingsUI() {
+                // Update theme buttons
+                const theme = localStorage.getItem('siteTheme') || 'dark';
+                document.querySelectorAll('.theme-option').forEach(btn => btn.classList.remove('active'));
+                document.getElementById('set-' + theme)?.classList.add('active');
+                
+                // Update badge count
+                const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
+                document.getElementById('badge-summary').innerText = `${unlocked.length} / 9 unlocked`;
+                
+                // Update notification toggles
+                const notifSettings = JSON.parse(localStorage.getItem('notifSettings') || '{"poll":true,"announce":true,"badge":true}');
+                document.getElementById('notif-poll').checked = notifSettings.poll;
+                document.getElementById('notif-announce').checked = notifSettings.announce;
+                document.getElementById('notif-badge').checked = notifSettings.badge;
+            }
+            
+            function saveNotifSetting(type) {
+                const settings = JSON.parse(localStorage.getItem('notifSettings') || '{"poll":true,"announce":true,"badge":true}');
+                settings[type] = document.getElementById('notif-' + type).checked;
+                localStorage.setItem('notifSettings', JSON.stringify(settings));
+            }
+            
+            function clearAllData() {
+                if (confirm('Are you sure you want to clear all data? This will reset your badges and settings.')) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            }
+            
+            // Update theme function to also update settings UI
+            const originalSetTheme = window.setTheme;
+            window.setTheme = function(theme) {
+                originalSetTheme(theme);
+                updateSettingsUI();
+            };
+        </script>
+        <style>
             /* Light Theme */
             html.light-theme, body.light-theme {
                 background: linear-gradient(rgba(200,200,200,0.85), rgba(200,200,200,0.85)), url("https://i.pinimg.com/originals/11/cf/ee/11cfeef9eaa56c71a6eeb9933f933492.gif") !important;
@@ -568,8 +765,11 @@
                 setTimeout(() => notif.remove(), 4500);
             }
             
-            // Check for poll - show if hasn't voted
+            // Check for poll - show if hasn't voted and enabled
             setTimeout(() => {
+                const settings = JSON.parse(localStorage.getItem('notifSettings') || '{"poll":true,"announce":true,"badge":true}');
+                if (!settings.poll) return;
+                
                 const voted = localStorage.getItem('voted_main');
                 if (!voted) {
                     showNotification('poll', '🗳️', 'There\'s a new poll! Click to vote.', () => {
@@ -581,6 +781,9 @@
             
             // Check for announcement
             setTimeout(() => {
+                const settings = JSON.parse(localStorage.getItem('notifSettings') || '{"poll":true,"announce":true,"badge":true}');
+                if (!settings.announce) return;
+                
                 const banner = document.getElementById('announcementBanner');
                 if (banner && !banner.classList.contains('hidden')) {
                     showNotification('announcement', '📢', 'New announcement!', () => banner.click());
@@ -589,6 +792,9 @@
             
             // Check for new badge - compare current count with stored count
             setTimeout(() => {
+                const settings = JSON.parse(localStorage.getItem('notifSettings') || '{"poll":true,"announce":true,"badge":true}');
+                if (!settings.badge) return;
+                
                 const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
                 const lastChecked = parseInt(localStorage.getItem('lastBadgeChecked') || '0');
                 
@@ -603,48 +809,9 @@
             }, 4000);
         </script>
 
-        <!-- Achievement Badges -->
-        <div class="badges-btn" onclick="showBadges()">🏆 Badges</div>
+        <!-- Achievement Badges Overlay -->
         <style>
-            .badges-btn {
-                position: fixed;
-                top: 80px;
-                left: 20px;
-                background: rgba(255,255,255,0.1);
-                padding: 10px 16px;
-                border-radius: 20px;
-                cursor: pointer;
-                font-size: 14px;
-                z-index: 100;
-                transition: all 0.3s;
-            }
-            .badges-btn:hover {
-                background: rgba(255,215,0,0.3);
-                transform: scale(1.05);
-            }
-            #badges-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(0,0,0,0.8);
-                display: none;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-            }
-            #badges-overlay.show { display: flex; }
-            .badges-card {
-                background: rgba(30,30,30,0.95);
-                padding: 30px;
-                border-radius: 20px;
-                max-width: 400px;
-                text-align: center;
-            }
-            .badges-grid {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 15px;
-                margin-top: 20px;
-            }
+               
             .badge {
                 padding: 15px 10px;
                 border-radius: 12px;
