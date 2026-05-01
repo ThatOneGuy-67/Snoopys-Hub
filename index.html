@@ -390,6 +390,297 @@
         <!-- END ANNOUNCEMENT -->
 
 
+        <!-- Theme Toggle -->
+        <div class="theme-toggle" title="Change theme">
+            <button onclick="setTheme('dark')" class="theme-btn" id="theme-dark">🌙</button>
+            <button onclick="setTheme('light')" class="theme-btn" id="theme-light">☀️</button>
+            <button onclick="setTheme('neon')" class="theme-btn" id="theme-neon">💜</button>
+        </div>
+        <style>
+            .theme-toggle {
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                display: flex;
+                gap: 8px;
+                z-index: 100;
+            }
+            .theme-btn {
+                width: 40px !important;
+                height: 40px;
+                padding: 0 !important;
+                font-size: 20px;
+                border-radius: 50% !important;
+                background: rgba(255,255,255,0.1) !important;
+                border: 2px solid transparent !important;
+            }
+            .theme-btn.active {
+                border-color: #fff !important;
+                background: rgba(77,163,255,0.3) !important;
+            }
+            /* Light Theme */
+            body.light-theme {
+                background: linear-gradient(rgba(200,200,200,0.85), rgba(200,200,200,0.85)), url("https://i.pinimg.com/originals/11/cf/ee/11cfeef9eaa56c71a6eeb9933f933492.gif") !important;
+                background-size: cover !important;
+                background-position: center !important;
+                background-attachment: fixed !important;
+                color: #1a1a1a !important;
+            }
+            body.light-theme .panel, body.light-theme .footer {
+                background: rgba(255,255,255,0.7) !important;
+                color: #1a1a1a !important;
+            }
+            body.light-theme .title { color: #1a1a1a !important; }
+            body.light-theme .panel h2 { color: #1a1a1a !important; }
+            body.light-theme .footer a { color: #333 !important; }
+            body.light-theme .footer a:hover { color: #4da3ff !important; }
+            /* Neon Theme */
+            body.neon-theme {
+                background: linear-gradient(rgba(20,0,30,0.9), rgba(20,0,30,0.9)), url("https://i.pinimg.com/originals/11/cf/ee/11cfeef9eaa56c71a6eeb9933f933492.gif") !important;
+                background-size: cover !important;
+                background-position: center !important;
+                background-attachment: fixed !important;
+                color: #e0e0ff !important;
+            }
+            body.neon-theme .panel, body.neon-theme .footer {
+                background: rgba(60,20,80,0.5) !important;
+                box-shadow: 0 0 20px rgba(180,100,255,0.3), inset 0 0 0 1px rgba(180,100,255,0.2) !important;
+            }
+            body.neon-theme .title {
+                color: #d080ff;
+                text-shadow: 0 0 20px #d080ff, 0 0 40px #d080ff;
+            }
+            body.neon-theme .panel h2 { color: #d080ff !important; }
+            body.neon-theme .footer a { color: #d080ff !important; }
+            body.neon-theme .footer a:hover {
+                color: #fff !important;
+                text-shadow: 0 0 10px #d080ff;
+            }
+        </style>
+        <script>
+            // Theme System
+            function setTheme(theme) {
+                document.body.classList.remove('light-theme', 'neon-theme');
+                localStorage.setItem('siteTheme', theme);
+                updateThemeButtons();
+            }
+            function updateThemeButtons() {
+                const theme = localStorage.getItem('siteTheme') || 'dark';
+                document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById('theme-' + theme)?.classList.add('active');
+            }
+            // Load saved theme
+            (function() {
+                const theme = localStorage.getItem('siteTheme') || 'dark';
+                if (theme === 'light') document.body.classList.add('light-theme');
+                if (theme === 'neon') document.body.classList.add('neon-theme');
+                updateThemeButtons();
+            })();
+        </script>
+
+        <!-- Notifications System -->
+        <div id="notification-container"></div>
+        <style>
+            #notification-container {
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 10000;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+            .notification {
+                background: rgba(30,30,30,0.95);
+                backdrop-filter: blur(10px);
+                padding: 14px 24px;
+                border-radius: 12px;
+                color: #fff;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+                animation: slideDown 0.4s ease, fadeOut 0.3s ease 4s forwards;
+                cursor: pointer;
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+            .notification.poll { border-left: 4px solid #4CAF50; }
+            .notification.announcement { border-left: 4px solid #ff9800; }
+            .notification.badge { border-left: 4px solid #ffd700; }
+            @keyframes slideDown {
+                from { transform: translateY(-20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+            @keyframes fadeOut {
+                to { opacity: 0; transform: translateY(-10px); }
+            }
+            .notif-icon { font-size: 18px; }
+            .notif-close { opacity: 0.6; font-size: 12px; margin-left: 8px; }
+        </style>
+        <script>
+            // Notification System
+            const notified = JSON.parse(localStorage.getItem('notified') || '[]');
+            
+            function showNotification(type, icon, message, action) {
+                const id = type + '-' + message.substring(0, 20);
+                if (notified.includes(id)) return;
+                
+                const container = document.getElementById('notification-container');
+                const notif = document.createElement('div');
+                notif.className = `notification ${type}`;
+                notif.innerHTML = `<span class="notif-icon">${icon}</span><span>${message}</span><span class="notif-close">✕</span>`;
+                notif.onclick = () => { if (action) action(); notif.remove(); };
+                container.appendChild(notif);
+                
+                notified.push(id);
+                localStorage.setItem('notified', JSON.stringify(notified));
+                
+                setTimeout(() => notif.remove(), 4500);
+            }
+            
+            // Check for poll
+            setTimeout(() => {
+                if (!localStorage.getItem('voted_main')) {
+                    showNotification('poll', '🗳️', 'There\'s a new poll! Click to vote.', () => {
+                        document.getElementById('overlay').style.display = 'flex';
+                    });
+                }
+            }, 2000);
+            
+            // Check for announcement (handled by existing code, but notify if exists)
+            setTimeout(() => {
+                const banner = document.getElementById('announcementBanner');
+                if (banner && !banner.classList.contains('hidden')) {
+                    showNotification('announcement', '📢', 'New announcement!', () => banner.click());
+                }
+            }, 3000);
+            
+            // Check for new badge
+            function checkNewBadge() {
+                const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
+                const lastBadge = localStorage.getItem('lastBadgeChecked');
+                if (unlocked.length > (parseInt(lastBadge) || 0)) {
+                    const badgeNames = { home: 'Home Sweet Home', games: 'Gamer', movies: 'Movie Fan', music: 'Music Lover', tools: 'Tool User', chat: 'Social Butterfly', links: 'Link Explorer', updates: 'News Reader', os: 'OS Tester' };
+                    const newBadge = unlocked[unlocked.length - 1];
+                    showNotification('badge', '🏆', `Badge unlocked: ${badgeNames[newBadge] || newBadge}!`, () => showBadges());
+                }
+                localStorage.setItem('lastBadgeChecked', unlocked.length);
+            }
+            checkNewBadge();
+        </script>
+
+        <!-- Achievement Badges -->
+        <div class="badges-btn" onclick="showBadges()">🏆 Badges</div>
+        <style>
+            .badges-btn {
+                position: fixed;
+                top: 80px;
+                left: 20px;
+                background: rgba(255,255,255,0.1);
+                padding: 10px 16px;
+                border-radius: 20px;
+                cursor: pointer;
+                font-size: 14px;
+                z-index: 100;
+                transition: all 0.3s;
+            }
+            .badges-btn:hover {
+                background: rgba(255,215,0,0.3);
+                transform: scale(1.05);
+            }
+            #badges-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.8);
+                display: none;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            }
+            #badges-overlay.show { display: flex; }
+            .badges-card {
+                background: rgba(30,30,30,0.95);
+                padding: 30px;
+                border-radius: 20px;
+                max-width: 400px;
+                text-align: center;
+            }
+            .badges-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+                margin-top: 20px;
+            }
+            .badge {
+                padding: 15px 10px;
+                border-radius: 12px;
+                background: rgba(255,255,255,0.05);
+                font-size: 30px;
+                opacity: 0.3;
+                transition: all 0.3s;
+            }
+            .badge.unlocked {
+                opacity: 1;
+                background: rgba(255,215,0,0.15);
+                box-shadow: 0 0 15px rgba(255,215,0,0.3);
+            }
+            .badge-name {
+                display: block;
+                font-size: 11px;
+                margin-top: 5px;
+                color: #aaa;
+            }
+            .badge.unlocked .badge-name { color: #ffd700; }
+        </style>
+        <div id="badges-overlay" onclick="this.classList.remove('show')">
+            <div class="badges-card" onclick="event.stopPropagation()">
+                <h2>🏆 Achievements</h2>
+                <p id="badge-progress">0 / 0 unlocked</p>
+                <div class="badges-grid" id="badges-grid"></div>
+                <button onclick="document.getElementById('badges-overlay').classList.remove('show')" style="margin-top:20px;width:auto;padding:10px 30px;">Close</button>
+            </div>
+        </div>
+        <script>
+            // Achievement System
+            const badges = [
+                { id: 'home', icon: '🏠', name: 'Home Sweet Home' },
+                { id: 'games', icon: '🎮', name: 'Gamer' },
+                { id: 'movies', icon: '🎬', name: 'Movie Fan' },
+                { id: 'music', icon: '🎵', name: 'Music Lover' },
+                { id: 'tools', icon: '🔧', name: 'Tool User' },
+                { id: 'chat', icon: '💬', name: 'Social Butterfly' },
+                { id: 'links', icon: '🔗', name: 'Link Explorer' },
+                { id: 'updates', icon: '📰', name: 'News Reader' },
+                { id: 'os', icon: '💻', name: 'OS Tester' }
+            ];
+            
+            function showBadges() {
+                const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
+                const grid = document.getElementById('badges-grid');
+                grid.innerHTML = badges.map(b => 
+                    `<div class="badge ${unlocked.includes(b.id) ? 'unlocked' : ''}">
+                        <div>${b.icon}</div>
+                        <span class="badge-name">${b.name}</span>
+                    </div>`
+                ).join('');
+                document.getElementById('badge-progress').innerText = `${unlocked.length} / ${badges.length} unlocked`;
+                document.getElementById('badges-overlay').classList.add('show');
+            }
+            
+            // Track page visit
+            (function() {
+                const page = 'home'; // This will be set differently on each page
+                const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
+                if (!unlocked.includes(page)) {
+                    unlocked.push(page);
+                    localStorage.setItem('unlockedBadges', JSON.stringify(unlocked));
+                }
+            })();
+        </script>
+
         <div id="dashboard">
 
         <h1 class="title">Snoopys Hub</h1>

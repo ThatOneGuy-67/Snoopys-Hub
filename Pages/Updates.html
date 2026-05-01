@@ -111,9 +111,26 @@ body {
 }
 </style>
 </head>
-
 <body>
-
+<script>
+// Track badge
+(function() {
+  const page = 'updates';
+  const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
+  if (!unlocked.includes(page)) {
+    unlocked.push(page);
+    localStorage.setItem('unlockedBadges', JSON.stringify(unlocked));
+  }
+})();
+// Check for new badge
+(function() {
+  const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
+  const lastBadge = localStorage.getItem('lastBadgeChecked');
+  if (unlocked.length > (parseInt(lastBadge) || 0)) {
+    localStorage.setItem('lastBadgeChecked', unlocked.length);
+  }
+})();
+</script>
 <div id="updates">
 
   <h1 class="title">UPDATE LOG</h1>

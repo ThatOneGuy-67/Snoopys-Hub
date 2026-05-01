@@ -5,6 +5,25 @@
   <title>Movie Hub</title>
 </head>
 <body style="margin:0">
+<script>
+// Track badge
+(function() {
+  const page = 'movies';
+  const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
+  if (!unlocked.includes(page)) {
+    unlocked.push(page);
+    localStorage.setItem('unlockedBadges', JSON.stringify(unlocked));
+  }
+})();
+// Check for new badge
+(function() {
+  const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
+  const lastBadge = localStorage.getItem('lastBadgeChecked');
+  if (unlocked.length > (parseInt(lastBadge) || 0)) {
+    localStorage.setItem('lastBadgeChecked', unlocked.length);
+  }
+})();
+</script>
 
 <iframe
   src="https://thatoneguy-67.github.io/Movies/"

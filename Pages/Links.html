@@ -95,6 +95,25 @@
   </style>
 </head>
 <body>
+<script>
+// Track badge
+(function() {
+  const page = 'links';
+  const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
+  if (!unlocked.includes(page)) {
+    unlocked.push(page);
+    localStorage.setItem('unlockedBadges', JSON.stringify(unlocked));
+  }
+})();
+// Check for new badge
+(function() {
+  const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
+  const lastBadge = localStorage.getItem('lastBadgeChecked');
+  if (unlocked.length > (parseInt(lastBadge) || 0)) {
+    localStorage.setItem('lastBadgeChecked', unlocked.length);
+  }
+})();
+</script>
   <h1 class="neon-title">LINKS</h1>
   <div class="subtitle">// idk</div>
 
