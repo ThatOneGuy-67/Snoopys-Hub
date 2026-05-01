@@ -438,6 +438,22 @@
                 <label><input type="checkbox" id="notif-badge" onchange="saveNotif('badge')"> Badges</label>
             </div>
 
+            <div class="settings-section danger">
+                <h3>Reset Data</h3>
+                <button onclick="clearAllData()" style="
+                    width: 100%;
+                    padding: 10px;
+                    border-radius: 10px;
+                    border: none;
+                    background: rgba(255,80,80,0.2);
+                    color: white;
+                    cursor: pointer;
+                    transition: 0.2s;
+                ">
+                    Reset All Data
+                </button>
+            </div>
+
             </div>
 
             <!-- BADGES TAB -->
@@ -568,6 +584,33 @@
         if (el) el.classList.remove("hidden");
 
         if (tab === "badges") showBadges();
+        }
+
+        /* ===================== RESET DATA ===================== */
+        function clearAllData() {
+        const confirmReset = confirm("⚠️ This will reset EVERYTHING (settings, badges, progress). Continue?");
+
+        if (!confirmReset) return;
+
+        // Clear only YOUR app data (safer than localStorage.clear)
+        const keysToRemove = [
+            "notifSettings",
+            "siteTheme",
+            "unlockedBadges"
+        ];
+
+        // Remove visit data for all badges
+        const badges = ["home","games","music","ghost","locked"];
+
+        badges.forEach(id => {
+            localStorage.removeItem("visit_" + id);
+        });
+
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+
+        alert("✅ Data reset complete!");
+
+        location.reload();
         }
 
         /* ===================== SETTINGS SAVE ===================== */
