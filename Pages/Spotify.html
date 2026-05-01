@@ -6,22 +6,19 @@
 </head>
 <body style="margin:0">
 <script>
-// Track badge
+// Track badge with visit counter
 (function() {
   const page = 'music';
+  const visits = parseInt(localStorage.getItem('visit_' + page) || '0') + 1;
+  localStorage.setItem('visit_' + page, visits);
+  
   const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
-  if (!unlocked.includes(page)) {
+  const req = 3;
+  if (visits >= req && !unlocked.includes(page)) {
     unlocked.push(page);
     localStorage.setItem('unlockedBadges', JSON.stringify(unlocked));
   }
-})();
-// Check for new badge
-(function() {
-  const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
-  const lastBadge = localStorage.getItem('lastBadgeChecked');
-  if (unlocked.length > (parseInt(lastBadge) || 0)) {
-    localStorage.setItem('lastBadgeChecked', unlocked.length);
-  }
+  localStorage.setItem('lastBadgeChecked', unlocked.length);
 })();
 </script>
 

@@ -4,6 +4,14 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Snoopys Hub</title>
+        <script>
+            // Apply theme BEFORE page renders
+            (function() {
+                const theme = localStorage.getItem('siteTheme') || 'dark';
+                if (theme === 'light') document.documentElement.classList.add('light-theme');
+                if (theme === 'neon') document.documentElement.classList.add('neon-theme');
+            })();
+        </script>
     </head>
 
     <body class="body">
@@ -419,34 +427,34 @@
                 background: rgba(77,163,255,0.3) !important;
             }
             /* Light Theme */
-            body.light-theme {
+            html.light-theme, body.light-theme {
                 background: linear-gradient(rgba(200,200,200,0.85), rgba(200,200,200,0.85)), url("https://i.pinimg.com/originals/11/cf/ee/11cfeef9eaa56c71a6eeb9933f933492.gif") !important;
                 background-size: cover !important;
                 background-position: center !important;
                 background-attachment: fixed !important;
                 color: #1a1a1a !important;
             }
-            body.light-theme .panel, body.light-theme .footer {
+            html.light-theme .panel, html.light-theme .footer, body.light-theme .panel, body.light-theme .footer {
                 background: rgba(255,255,255,0.7) !important;
                 color: #1a1a1a !important;
             }
-            body.light-theme .title { color: #1a1a1a !important; }
-            body.light-theme .panel h2 { color: #1a1a1a !important; }
-            body.light-theme .footer a { color: #333 !important; }
-            body.light-theme .footer a:hover { color: #4da3ff !important; }
+            html.light-theme .title, body.light-theme .title { color: #1a1a1a !important; }
+            html.light-theme .panel h2, body.light-theme .panel h2 { color: #1a1a1a !important; }
+            html.light-theme .footer a, body.light-theme .footer a { color: #333 !important; }
+            html.light-theme .footer a:hover, body.light-theme .footer a:hover { color: #4da3ff !important; }
             /* Neon Theme */
-            body.neon-theme {
+            html.neon-theme, body.neon-theme {
                 background: linear-gradient(rgba(20,0,30,0.9), rgba(20,0,30,0.9)), url("https://i.pinimg.com/originals/11/cf/ee/11cfeef9eaa56c71a6eeb9933f933492.gif") !important;
                 background-size: cover !important;
                 background-position: center !important;
                 background-attachment: fixed !important;
                 color: #e0e0ff !important;
             }
-            body.neon-theme .panel, body.neon-theme .footer {
+            html.neon-theme .panel, html.neon-theme .footer, body.neon-theme .panel, body.neon-theme .footer {
                 background: rgba(60,20,80,0.5) !important;
                 box-shadow: 0 0 20px rgba(180,100,255,0.3), inset 0 0 0 1px rgba(180,100,255,0.2) !important;
             }
-            body.neon-theme .title {
+            html.neon-theme .title, body.neon-theme .title {
                 color: #d080ff;
                 text-shadow: 0 0 20px #d080ff, 0 0 40px #d080ff;
             }
@@ -461,6 +469,10 @@
             // Theme System
             function setTheme(theme) {
                 document.body.classList.remove('light-theme', 'neon-theme');
+                document.documentElement.classList.remove('light-theme', 'neon-theme');
+                if (theme !== 'dark') {
+                    document.documentElement.classList.add(theme + '-theme');
+                }
                 localStorage.setItem('siteTheme', theme);
                 updateThemeButtons();
             }
@@ -472,8 +484,14 @@
             // Load saved theme
             (function() {
                 const theme = localStorage.getItem('siteTheme') || 'dark';
-                if (theme === 'light') document.body.classList.add('light-theme');
-                if (theme === 'neon') document.body.classList.add('neon-theme');
+                if (theme === 'light') {
+                    document.body.classList.add('light-theme');
+                    document.documentElement.classList.add('light-theme');
+                }
+                if (theme === 'neon') {
+                    document.body.classList.add('neon-theme');
+                    document.documentElement.classList.add('neon-theme');
+                }
                 updateThemeButtons();
             })();
         </script>
@@ -529,10 +547,19 @@
                 if (notified.includes(id)) return;
                 
                 const container = document.getElementById('notification-container');
+                if (!container) return;
+                
                 const notif = document.createElement('div');
                 notif.className = `notification ${type}`;
                 notif.innerHTML = `<span class="notif-icon">${icon}</span><span>${message}</span><span class="notif-close">✕</span>`;
-                notif.onclick = () => { if (action) action(); notif.remove(); };
+                notif.onclick = (e) => { 
+                    if (e.target.classList.contains('notif-close')) {
+                        notif.remove();
+                        return;
+                    }
+                    if (action) action(); 
+                    notif.remove(); 
+                };
                 container.appendChild(notif);
                 
                 notified.push(id);
@@ -541,35 +568,39 @@
                 setTimeout(() => notif.remove(), 4500);
             }
             
-            // Check for poll
+            // Check for poll - show if hasn't voted
             setTimeout(() => {
-                if (!localStorage.getItem('voted_main')) {
+                const voted = localStorage.getItem('voted_main');
+                if (!voted) {
                     showNotification('poll', '🗳️', 'There\'s a new poll! Click to vote.', () => {
-                        document.getElementById('overlay').style.display = 'flex';
+                        const overlay = document.getElementById('overlay');
+                        if (overlay) overlay.style.display = 'flex';
                     });
                 }
-            }, 2000);
+            }, 2500);
             
-            // Check for announcement (handled by existing code, but notify if exists)
+            // Check for announcement
             setTimeout(() => {
                 const banner = document.getElementById('announcementBanner');
                 if (banner && !banner.classList.contains('hidden')) {
                     showNotification('announcement', '📢', 'New announcement!', () => banner.click());
                 }
-            }, 3000);
+            }, 3500);
             
-            // Check for new badge
-            function checkNewBadge() {
+            // Check for new badge - compare current count with stored count
+            setTimeout(() => {
                 const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
-                const lastBadge = localStorage.getItem('lastBadgeChecked');
-                if (unlocked.length > (parseInt(lastBadge) || 0)) {
+                const lastChecked = parseInt(localStorage.getItem('lastBadgeChecked') || '0');
+                
+                if (unlocked.length > lastChecked) {
                     const badgeNames = { home: 'Home Sweet Home', games: 'Gamer', movies: 'Movie Fan', music: 'Music Lover', tools: 'Tool User', chat: 'Social Butterfly', links: 'Link Explorer', updates: 'News Reader', os: 'OS Tester' };
-                    const newBadge = unlocked[unlocked.length - 1];
-                    showNotification('badge', '🏆', `Badge unlocked: ${badgeNames[newBadge] || newBadge}!`, () => showBadges());
+                    const newBadges = unlocked.slice(lastChecked);
+                    newBadges.forEach(badgeId => {
+                        showNotification('badge', '🏆', `Badge unlocked: ${badgeNames[badgeId] || badgeId}!`, () => showBadges());
+                    });
                 }
                 localStorage.setItem('lastBadgeChecked', unlocked.length);
-            }
-            checkNewBadge();
+            }, 4000);
         </script>
 
         <!-- Achievement Badges -->
@@ -633,7 +664,14 @@
                 margin-top: 5px;
                 color: #aaa;
             }
+            .badge-progress {
+                display: block;
+                font-size: 10px;
+                margin-top: 3px;
+                color: #666;
+            }
             .badge.unlocked .badge-name { color: #ffd700; }
+            .badge.unlocked .badge-progress { color: #ffd700; }
         </style>
         <div id="badges-overlay" onclick="this.classList.remove('show')">
             <div class="badges-card" onclick="event.stopPropagation()">
@@ -646,38 +684,49 @@
         <script>
             // Achievement System
             const badges = [
-                { id: 'home', icon: '🏠', name: 'Home Sweet Home' },
-                { id: 'games', icon: '🎮', name: 'Gamer' },
-                { id: 'movies', icon: '🎬', name: 'Movie Fan' },
-                { id: 'music', icon: '🎵', name: 'Music Lover' },
-                { id: 'tools', icon: '🔧', name: 'Tool User' },
-                { id: 'chat', icon: '💬', name: 'Social Butterfly' },
-                { id: 'links', icon: '🔗', name: 'Link Explorer' },
-                { id: 'updates', icon: '📰', name: 'News Reader' },
-                { id: 'os', icon: '💻', name: 'OS Tester' }
+                { id: 'home', icon: '🏠', name: 'Home Sweet Home', req: 3 },
+                { id: 'games', icon: '🎮', name: 'Gamer', req: 3 },
+                { id: 'movies', icon: '🎬', name: 'Movie Fan', req: 3 },
+                { id: 'music', icon: '🎵', name: 'Music Lover', req: 3 },
+                { id: 'tools', icon: '🔧', name: 'Tool User', req: 3 },
+                { id: 'chat', icon: '💬', name: 'Social Butterfly', req: 3 },
+                { id: 'links', icon: '🔗', name: 'Link Explorer', req: 3 },
+                { id: 'updates', icon: '📰', name: 'News Reader', req: 3 },
+                { id: 'os', icon: '💻', name: 'OS Tester', req: 3 }
             ];
             
             function showBadges() {
                 const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
                 const grid = document.getElementById('badges-grid');
-                grid.innerHTML = badges.map(b => 
-                    `<div class="badge ${unlocked.includes(b.id) ? 'unlocked' : ''}">
+                grid.innerHTML = badges.map(b => {
+                    const visits = parseInt(localStorage.getItem('visit_' + b.id) || '0');
+                    const isUnlocked = unlocked.includes(b.id);
+                    return `<div class="badge ${isUnlocked ? 'unlocked' : ''}">
                         <div>${b.icon}</div>
                         <span class="badge-name">${b.name}</span>
-                    </div>`
-                ).join('');
-                document.getElementById('badge-progress').innerText = `${unlocked.length} / ${badges.length} unlocked`;
+                        <span class="badge-progress">${isUnlocked ? '✓' : visits + '/' + b.req}</span>
+                    </div>`;
+                }).join('');
+                const unlockedCount = unlocked.length;
+                document.getElementById('badge-progress').innerText = `${unlockedCount} / ${badges.length} unlocked`;
                 document.getElementById('badges-overlay').classList.add('show');
             }
             
-            // Track page visit
+            // Track page visit with counter
             (function() {
-                const page = 'home'; // This will be set differently on each page
+                const page = 'home';
+                const visits = parseInt(localStorage.getItem('visit_' + page) || '0') + 1;
+                localStorage.setItem('visit_' + page, visits);
+                
+                // Check if should unlock
                 const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
-                if (!unlocked.includes(page)) {
+                const req = 3;
+                if (visits >= req && !unlocked.includes(page)) {
                     unlocked.push(page);
                     localStorage.setItem('unlockedBadges', JSON.stringify(unlocked));
                 }
+                // Update badge check count
+                localStorage.setItem('lastBadgeChecked', unlocked.length);
             })();
         </script>
 
