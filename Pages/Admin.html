@@ -374,17 +374,19 @@ window.loadAnalytics = async function() {
       } else {
         document.getElementById("statLastReset").innerText = "Never";
       }
+    } else {
+      document.getElementById("statPollVotes").innerText = "0";
+      document.getElementById("statLastReset").innerText = "N/A";
     }
     
-    // Get chat count (approximate from subcollection)
-    // Note: This is a placeholder - actual implementation would need a counter
-    document.getElementById("statChats").innerText = "—";
-    
-    // Users placeholder
-    document.getElementById("statUsers").innerText = "—";
+    // Chat and Users - not available (external chat)
+    document.getElementById("statChats").innerText = "N/A";
+    document.getElementById("statUsers").innerText = "N/A";
     
   } catch (err) {
     console.error("Analytics error:", err);
+    document.getElementById("statPollVotes").innerText = "Error";
+    document.getElementById("statLastReset").innerText = "Error";
   }
 };
 
