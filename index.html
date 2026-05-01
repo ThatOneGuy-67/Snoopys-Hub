@@ -312,6 +312,50 @@
         </script>
         <!-- END POLL Code -->
 
+        <!-- ANNOUNCEMENT BANNER -->
+        <div id="announcementBanner" class="hidden" style="position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#ff6b6b,#4ecdc4);padding:12px;text-align:center;z-index:9999;cursor:pointer;">
+            <span id="announcementText" style="font-weight:bold;color:#fff;font-size:16px;"></span>
+            <span style="margin-left:15px;color:rgba(255,255,255,0.7);font-size:12px;">(click to dismiss)</span>
+        </div>
+        <script>
+            // Load announcement on page load
+            (async function() {
+                try {
+                    const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+                    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+                    
+                    const firebaseConfig = {
+                        apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
+                        authDomain: "snoopys-hub.firebaseapp.com",
+                        projectId: "snoopys-hub",
+                        storageBucket: "snoopys-hub.appspot.com",
+                        messagingSenderId: "711107016273",
+                        appId: "1:711107016273:web:c0680189aa61f6b9052a70"
+                    };
+                    
+                    const app = initializeApp(firebaseConfig);
+                    const db = getFirestore(app);
+                    
+                    const annSnap = await getDoc(doc(db, "site", "announcement"));
+                    if (annSnap.exists()) {
+                        const data = annSnap.data();
+                        if (data.title && data.text) {
+                            const banner = document.getElementById("announcementBanner");
+                            const text = document.getElementById("announcementText");
+                            if (banner && text) {
+                                text.innerText = "📢 " + data.title + ": " + data.text;
+                                banner.classList.remove("hidden");
+                                banner.onclick = () => banner.classList.add("hidden");
+                                // Push dashboard down
+                                const dash = document.getElementById("dashboard");
+                                if (dash) dash.style.marginTop = "60px";
+                            }
+                        }
+                    }
+                } catch (e) { console.log("Announcement load skipped"); }
+            })();
+        </script>
+        <!-- END ANNOUNCEMENT -->
 
 
         <div id="dashboard">

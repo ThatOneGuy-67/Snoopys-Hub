@@ -26,6 +26,55 @@
       background: #4da3ff;
       color: white;
     }
+
+    /* Admin Tabs */
+    .admin-tabs {
+      margin: 20px 0;
+    }
+    .tab-btn {
+      width: auto !important;
+      margin: 4px;
+      padding: 8px 16px !important;
+      background: #333;
+      border: 1px solid #555;
+    }
+    .tab-btn.active {
+      background: #4da3ff;
+      border-color: #4da3ff;
+    }
+    .tab-content {
+      padding: 20px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    .tab-content.hidden {
+      display: none;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .stat-card {
+      background: rgba(0,0,0,0.3);
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .stat-number {
+      font-size: 32px;
+      font-weight: bold;
+      color: #4da3ff;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 5px;
+    }
   </style>
 </head>
 
@@ -45,15 +94,74 @@
 
 <!-- ADMIN -->
 <div id="adminPanel" class="hidden">
-  <h2>🛠 Create Poll</h2>
+  <h2>🛠 Admin Panel</h2>
+  
+  <!-- Tab Navigation -->
+  <div class="admin-tabs">
+    <button class="tab-btn active" onclick="showTab('polls')">🗳 Polls</button>
+    <button class="tab-btn" onclick="showTab('announcements')">📢 Announcements</button>
+    <button class="tab-btn" onclick="showTab('analytics')">📊 Analytics</button>
+    <button class="tab-btn" onclick="showTab('backup')">💾 Backup</button>
+  </div>
 
-  <input id="title" placeholder="Question" />
-  <input id="optionA" placeholder="Option A" />
-  <input id="optionB" placeholder="Option B" />
+  <!-- Polls Tab -->
+  <div id="polls" class="tab-content">
+    <h3>Create Poll</h3>
+    <input id="title" placeholder="Question" />
+    <input id="optionA" placeholder="Option A" />
+    <input id="optionB" placeholder="Option B" />
+    <br>
+    <button onclick="createPoll()">Create Poll</button>
+    <button onclick="resetPoll()" style="background:#ff4d4d;">Reset Poll Votes</button>
+  </div>
 
-  <button onclick="createPoll()">Create Poll</button>
-  <button onclick="resetPoll()" style="background:#ff4d4d;">Reset Poll Votes</button>
-  <button onclick="logout()">Logout</button>
+  <!-- Announcements Tab -->
+  <div id="announcements" class="tab-content hidden">
+    <h3>📢 Site Announcements</h3>
+    <input id="announcementTitle" placeholder="Announcement Title" />
+    <textarea id="announcementText" placeholder="Announcement message..." style="width:240px;height:80px;padding:10px;margin:6px;border-radius:8px;border:none;resize:none;"></textarea>
+    <br>
+    <button onclick="postAnnouncement()">Post Announcement</button>
+    <button onclick="clearAnnouncement()" style="background:#ff4d4d;">Clear Announcement</button>
+    <p id="announcementStatus"></p>
+  </div>
+
+  <!-- Analytics Tab -->
+  <div id="analytics" class="tab-content hidden">
+    <h3>📊 Site Analytics</h3>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number" id="statUsers">-</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statPollVotes">-</div>
+        <div class="stat-label">Total Votes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statChats">-</div>
+        <div class="stat-label">Chat Messages</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statLastReset">-</div>
+        <div class="stat-label">Last Poll Reset</div>
+      </div>
+    </div>
+    <button onclick="loadAnalytics()" style="margin-top:15px;">🔄 Refresh Stats</button>
+  </div>
+
+  <!-- Backup Tab -->
+  <div id="backup" class="tab-content hidden">
+    <h3>💾 Data Export/Backup</h3>
+    <p>Export all site data as JSON for backup.</p>
+    <button onclick="exportData()">📥 Export All Data</button>
+    <button onclick="importData()" style="background:#4da3ff;">📤 Import Data</button>
+    <input type="file" id="importFile" accept=".json" style="display:none;" onchange="handleImport(this)">
+    <p id="backupStatus"></p>
+  </div>
+
+  <br><br>
+  <button onclick="logout()" style="background:#666;">🚪 Logout</button>
 </div>
 
 <script type="module">
@@ -69,7 +177,8 @@ import {
   getFirestore,
   doc,
   setDoc,
-  updateDoc
+  updateDoc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -175,6 +284,150 @@ window.resetPoll = async function () {
   } catch (err) {
     console.error("Reset failed:", err);
     alert("Reset failed — check console");
+  }
+};
+
+// 📑 TAB NAVIGATION
+window.showTab = function(tabId) {
+  // Hide all tab contents
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+  // Show selected tab
+  document.getElementById(tabId).classList.remove('hidden');
+  
+  // Update tab buttons
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  // Load analytics if that tab
+  if (tabId === 'analytics') loadAnalytics();
+};
+
+// 📢 ANNOUNCEMENTS
+
+window.postAnnouncement = async function() {
+  const title = document.getElementById("announcementTitle").value;
+  const text = document.getElementById("announcementText").value;
+  
+  if (!title || !text) {
+    document.getElementById("announcementStatus").innerText = "Please fill in all fields";
+    return;
+  }
+  
+  try {
+    await setDoc(doc(db, "site", "announcement"), {
+      title: title,
+      text: text,
+      postedAt: Date.now()
+    }, { merge: true });
+    
+    document.getElementById("announcementStatus").innerText = "✅ Announcement posted!";
+    document.getElementById("announcementTitle").value = "";
+    document.getElementById("announcementText").value = "";
+  } catch (err) {
+    console.error(err);
+    document.getElementById("announcementStatus").innerText = "❌ Failed to post";
+  }
+};
+
+window.clearAnnouncement = async function() {
+  if (!confirm("Clear the current announcement?")) return;
+  
+  try {
+    await setDoc(doc(db, "site", "announcement"), {
+      title: null,
+      text: null,
+      postedAt: null
+    }, { merge: true });
+    
+    document.getElementById("announcementStatus").innerText = "✅ Announcement cleared";
+  } catch (err) {
+    document.getElementById("announcementStatus").innerText = "❌ Failed to clear";
+  }
+};
+
+// 📊 ANALYTICS
+window.loadAnalytics = async function() {
+  try {
+    // Get poll data
+    const pollSnap = await getDoc(doc(db, "polls", "main"));
+    if (pollSnap.exists()) {
+      const pollData = pollSnap.data();
+      const totalVotes = (pollData.A || 0) + (pollData.B || 0);
+      document.getElementById("statPollVotes").innerText = totalVotes;
+      
+      if (pollData.lastReset) {
+        const date = new Date(pollData.lastReset);
+        document.getElementById("statLastReset").innerText = date.toLocaleDateString();
+      } else {
+        document.getElementById("statLastReset").innerText = "Never";
+      }
+    }
+    
+    // Get chat count (approximate from subcollection)
+    // Note: This is a placeholder - actual implementation would need a counter
+    document.getElementById("statChats").innerText = "—";
+    
+    // Users placeholder
+    document.getElementById("statUsers").innerText = "—";
+    
+  } catch (err) {
+    console.error("Analytics error:", err);
+  }
+};
+
+// 💾 DATA EXPORT
+window.exportData = async function() {
+  try {
+    const data = {};
+    
+    // Export poll
+    const pollSnap = await getDoc(doc(db, "polls", "main"));
+    if (pollSnap.exists()) data.poll = pollSnap.data();
+    
+    // Export announcement
+    const annSnap = await getDoc(doc(db, "site", "announcement"));
+    if (annSnap.exists()) data.announcement = annSnap.data();
+    
+    // Create and download JSON file
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `snoopys-hub-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    document.getElementById("backupStatus").innerText = "✅ Data exported!";
+  } catch (err) {
+    console.error(err);
+    document.getElementById("backupStatus").innerText = "❌ Export failed";
+  }
+};
+
+window.importData = function() {
+  document.getElementById("importFile").click();
+};
+
+window.handleImport = async function(input) {
+  const file = input.files[0];
+  if (!file) return;
+  
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    
+    if (data.poll) {
+      await setDoc(doc(db, "polls", "main"), data.poll, { merge: true });
+    }
+    if (data.announcement) {
+      await setDoc(doc(db, "site", "announcement"), data.announcement, { merge: true });
+    }
+    
+    document.getElementById("backupStatus").innerText = "✅ Data imported!";
+    input.value = ""; // Reset file input
+  } catch (err) {
+    console.error(err);
+    document.getElementById("backupStatus").innerText = "❌ Import failed - invalid file";
   }
 };
 </script>
