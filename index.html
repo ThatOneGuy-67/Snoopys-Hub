@@ -339,7 +339,8 @@
                     const annSnap = await getDoc(doc(db, "site", "announcement"));
                     if (annSnap.exists()) {
                         const data = annSnap.data();
-                        if (data.title && data.text) {
+                        // Check for non-empty title and text (also handle empty strings)
+                        if (data.title && data.text && data.title.toString().trim() !== "" && data.text.toString().trim() !== "") {
                             const banner = document.getElementById("announcementBanner");
                             const text = document.getElementById("announcementText");
                             if (banner && text) {
