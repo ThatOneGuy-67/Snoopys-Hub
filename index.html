@@ -313,10 +313,41 @@
         <!-- END POLL Code -->
 
         <!-- ANNOUNCEMENT BANNER -->
-        <div id="announcementBanner" class="hidden" style="position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#ff6b6b,#4ecdc4);padding:12px;text-align:center;z-index:9999;cursor:pointer;">
-            <span id="announcementText" style="font-weight:bold;color:#fff;font-size:16px;"></span>
-            <span style="margin-left:15px;color:rgba(255,255,255,0.7);font-size:12px;">(click to dismiss)</span>
+        <div id="announcementBanner" class="hidden" style="position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#ff6b6b,#4ecdc4);padding:16px 12px 12px 12px;text-align:center;z-index:9999;cursor:pointer;">
+            <span class="bell">🔔</span><span id="announcementText" style="font-weight:bold;color:#fff;font-size:20px;"></span>
+            <span style="margin-left:15px;color:rgba(255,255,255,0.7);font-size:13px;">(click to dismiss)</span>
         </div>
+        <style>
+            #announcementBanner {
+            animation: pulse 1.2s infinite;
+            box-shadow: 0 4px 24px 0 rgba(255,0,0,0.25), 0 1.5px 0 0 #fff;
+            border-bottom: 4px solid #fff;
+            }
+            @keyframes pulse {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(1.25) drop-shadow(0 0 12px #fff); }
+            100% { filter: brightness(1); }
+            }
+            #announcementBanner .bell {
+            animation: ring 1.2s infinite;
+            display: inline-block;
+            margin-right: 10px;
+            font-size: 22px;
+            vertical-align: middle;
+            }
+            @keyframes ring {
+            0% { transform: rotate(0); }
+            20% { transform: rotate(-15deg); }
+            40% { transform: rotate(10deg); }
+            60% { transform: rotate(-10deg); }
+            80% { transform: rotate(5deg); }
+            100% { transform: rotate(0); }
+            }
+            #announcementText {
+            font-size: 20px !important;
+            letter-spacing: 0.5px;
+            }
+        </style>
         <script>
             // Load announcement on page load
             (async function() {
@@ -344,7 +375,7 @@
                             const banner = document.getElementById("announcementBanner");
                             const text = document.getElementById("announcementText");
                             if (banner && text) {
-                                text.innerText = "📢 " + data.title + ": " + data.text;
+                                text.innerText = data.title + ": " + data.text;
                                 banner.classList.remove("hidden");
                                 banner.onclick = () => banner.classList.add("hidden");
                                 // Push dashboard down
