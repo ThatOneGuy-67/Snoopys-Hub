@@ -15,6 +15,7 @@
     </head>
 
     <body class="body">
+        <script src="notification-helper.js"></script>
 
         <!-- IN-SITE NOTIFICATIONS -->
         <div id="notification-container" style="position:fixed;top:20px;right:20px;z-index:10000;max-width:300px;"></div>
@@ -418,8 +419,38 @@
                     }
                 } catch (e) { console.log("Announcement load skipped"); }
             })();
+
+            window.addEventListener('storage', (event) => {
+                if (event.key !== 'siteAnnouncement') return;
+                const banner = document.getElementById('announcementBanner');
+                const text = document.getElementById('announcementText');
+                const dash = document.getElementById('dashboard');
+
+                if (!event.newValue) {
+                    if (banner) banner.classList.add('hidden');
+                    if (dash) dash.style.marginTop = '';
+                    return;
+                }
+
+                try {
+                    const data = JSON.parse(event.newValue);
+                    if (data && data.title && data.text) {
+                        if (banner && text) {
+                            text.innerText = data.title + ': ' + data.text;
+                            banner.classList.remove('hidden');
+                            banner.onclick = () => banner.classList.add('hidden');
+                            if (dash) dash.style.marginTop = '60px';
+                        }
+                        const settings = JSON.parse(localStorage.getItem('notifSettings') || '{}');
+                        if (settings.announce) {
+                            showSiteNotification('📢 ' + data.title, data.text);
+                        }
+                    }
+                } catch (e) {
+                    console.log('Announcement storage event skipped');
+                }
+            });
         </script>
-        <!-- END ANNOUNCEMENT -->
 
 
 

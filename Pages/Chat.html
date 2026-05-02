@@ -5,6 +5,7 @@
   <title>Snoopy’s Chat</title>
 </head>
 <body style="margin:0">
+<script src="../notification-helper.js"></script>
 <script>
 // Track badge with visit counter and notifications
 (function() {
@@ -17,11 +18,15 @@
   if (visits >= req && !unlocked.includes(page)) {
     unlocked.push(page);
     localStorage.setItem('unlockedBadges', JSON.stringify(unlocked));
-    
-    // Trigger notification in parent window
+    const title = '🏆 Achievement Unlocked!';
+    const body = 'You unlocked "???"!';
     if (window.parent && window.parent.triggerNotification) {
-      window.parent.triggerNotification('🏆 Achievement Unlocked!', 'You unlocked "???"!');
+      window.parent.triggerNotification(title, body);
     }
+    if (window.showSiteNotification) {
+      window.showSiteNotification(title, body);
+    }
+    localStorage.setItem('badgeNotification', JSON.stringify({ title, body, time: Date.now() }));
   }
   localStorage.setItem('lastBadgeChecked', unlocked.length);
 })();
