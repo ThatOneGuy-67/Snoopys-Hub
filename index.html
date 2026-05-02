@@ -16,7 +16,11 @@
 
     <body class="body">
 
-        <!-- POLL Code -->
+        <!-- IN-SITE NOTIFICATION -->
+        <div id="site-notification" class="hidden" style="position:fixed;top:20px;right:20px;background:rgba(77,163,255,0.95);color:#fff;padding:16px 20px;border-radius:12px;z-index:10000;max-width:300px;box-shadow:0 4px 20px rgba(77,163,255,0.4);cursor:pointer;" onclick="this.classList.add('hidden')">
+            <div id="notif-title" style="font-weight:bold;margin-bottom:4px;"></div>
+            <div id="notif-body"></div>
+        </div>
         <div id="overlay">
             <div class="card">
 
@@ -663,29 +667,24 @@
 
         /* ===================== TEST NOTIFICATIONS ===================== */
         function testNotifications() {
-        if (!('Notification' in window)) {
-            alert('This browser does not support notifications.');
-            return;
+        showSiteNotification('Test Notification', 'This is a test in-site notification from Snoopy\'s Hub!');
         }
 
-        if (Notification.permission === 'granted') {
-            new Notification('Test Notification', {
-                body: 'This is a test notification from Snoopy\'s Hub!',
-                icon: 'https://via.placeholder.com/64' // You can replace with an actual icon URL
-            });
-        } else if (Notification.permission !== 'denied') {
-            Notification.requestPermission().then(permission => {
-                if (permission === 'granted') {
-                    new Notification('Test Notification', {
-                        body: 'This is a test notification from Snoopy\'s Hub!',
-                        icon: 'https://via.placeholder.com/64'
-                    });
-                } else {
-                    alert('Notification permission denied.');
-                }
-            });
-        } else {
-            alert('Notification permission denied. Please enable notifications in your browser settings.');
+        /* ===================== SHOW SITE NOTIFICATION ===================== */
+        function showSiteNotification(title, body) {
+        const notif = document.getElementById('site-notification');
+        const titleEl = document.getElementById('notif-title');
+        const bodyEl = document.getElementById('notif-body');
+
+        if (notif && titleEl && bodyEl) {
+            titleEl.textContent = title;
+            bodyEl.textContent = body;
+            notif.classList.remove('hidden');
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                notif.classList.add('hidden');
+            }, 5000);
         }
         }
 
@@ -711,6 +710,12 @@
         if (v >= badge.req && !unlocked.includes(page)) {
             unlocked.push(page);
             localStorage.setItem("unlockedBadges", JSON.stringify(unlocked));
+
+            // Show notification if enabled
+            const settings = JSON.parse(localStorage.getItem("notifSettings") || "{}");
+            if (settings.badge) {
+                showSiteNotification('🏆 Achievement Unlocked!', `You unlocked "${badge.name}"!`);
+            }
         }
         }
 
