@@ -716,6 +716,9 @@
             <div class="notif-progress" style="position:absolute;bottom:0;left:0;height:3px;background:#fff;width:100%;"></div>
         `;
 
+        // Get progress bar element
+        const progressBar = notif.querySelector('.notif-progress');
+
         // Theme matching
         const theme = localStorage.getItem('siteTheme') || 'dark';
         let progressColor = '#fff';
@@ -729,16 +732,13 @@
             notif.style.boxShadow = '0 4px 20px rgba(255,0,255,0.4)';
             progressColor = '#00ffff';
         }
-        progress.style.background = progressColor;
-
-        container.appendChild(notif);
-
-        // Animate progress bar
-        const progress = notif.querySelector('.notif-progress');
-        progress.style.transition = `width ${duration}ms linear`;
-        setTimeout(() => {
-            progress.style.width = '0%';
-        }, 10);
+        if (progressBar) {
+            progressBar.style.background = progressColor;
+            progressBar.style.transition = `width ${duration}ms linear`;
+            setTimeout(() => {
+                progressBar.style.width = '0%';
+            }, 10);
+        }
 
         // Auto-hide
         const timer = setTimeout(() => {
@@ -753,8 +753,6 @@
             notif.remove();
         };
         }
-
-        /* ===================== BADGES DATA ===================== */
         const badges = [
         { id:"home", icon:"🏠", name:"Home Sweet Home", req:3 },
         { id:"games", icon:"🎮", name:"Gamer", req:5 },
