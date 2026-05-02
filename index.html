@@ -436,6 +436,19 @@
                 <label><input type="checkbox" id="notif-poll" onchange="saveNotif('poll')"> Polls</label><br>
                 <label><input type="checkbox" id="notif-announce" onchange="saveNotif('announce')"> Announcements</label><br>
                 <label><input type="checkbox" id="notif-badge" onchange="saveNotif('badge')"> Badges</label>
+                <br><br>
+                <button onclick="testNotifications()" style="
+                    width: 100%;
+                    padding: 8px;
+                    border-radius: 8px;
+                    border: none;
+                    background: rgba(255,255,255,0.1);
+                    color: white;
+                    cursor: pointer;
+                    margin-top: 10px;
+                ">
+                    Test Notifications
+                </button>
             </div>
 
             <div class="settings-section danger">
@@ -646,6 +659,34 @@
 
         if (t === "light") document.documentElement.classList.add("theme-light");
         if (t === "neon") document.documentElement.classList.add("theme-neon");
+        }
+
+        /* ===================== TEST NOTIFICATIONS ===================== */
+        function testNotifications() {
+        if (!('Notification' in window)) {
+            alert('This browser does not support notifications.');
+            return;
+        }
+
+        if (Notification.permission === 'granted') {
+            new Notification('Test Notification', {
+                body: 'This is a test notification from Snoopy\'s Hub!',
+                icon: 'https://via.placeholder.com/64' // You can replace with an actual icon URL
+            });
+        } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    new Notification('Test Notification', {
+                        body: 'This is a test notification from Snoopy\'s Hub!',
+                        icon: 'https://via.placeholder.com/64'
+                    });
+                } else {
+                    alert('Notification permission denied.');
+                }
+            });
+        } else {
+            alert('Notification permission denied. Please enable notifications in your browser settings.');
+        }
         }
 
         /* ===================== BADGES DATA ===================== */
