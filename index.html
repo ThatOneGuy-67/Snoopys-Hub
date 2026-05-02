@@ -427,9 +427,9 @@
 
             <div class="settings-section">
                 <h3>🎨 Theme</h3>
-                <button onclick="setTheme('dark')">🌙 Dark</button>
-                <button onclick="setTheme('light')">☀️ Light</button>
-                <button onclick="setTheme('neon')">💜 Neon</button>
+                <button id="theme-dark" onclick="setTheme('dark')">🌙 Dark</button>
+                <button id="theme-light" onclick="setTheme('light')">☀️ Light</button>
+                <button id="theme-neon" onclick="setTheme('neon')">💜 Neon</button>
             </div>
 
             <div class="settings-section">
@@ -548,11 +548,23 @@
         cursor: pointer;
         }
 
-        .settings-section {
-        background: rgba(255,255,255,0.05);
-        padding: 12px;
-        margin-bottom: 10px;
-        border-radius: 12px;
+        .settings-section button {
+        margin: 4px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: none;
+        background: rgba(255,255,255,0.1);
+        color: white;
+        cursor: pointer;
+        }
+
+        .settings-section button:hover {
+        background: rgba(255,255,255,0.2);
+        }
+
+        .settings-section button.active {
+        background: var(--accent);
+        color: white;
         }
 
         /* BADGES */
@@ -598,6 +610,7 @@
         if (el) el.classList.remove("hidden");
 
         if (tab === "badges") showBadges();
+        if (tab === "settings") updateThemeButtons();
         }
 
         /* ===================== RESET DATA ===================== */
@@ -643,7 +656,14 @@
         document.getElementById("notif-badge").checked = settings.badge ?? true;
         }
 
-        /* ===================== THEME ===================== */
+        /* ===================== UPDATE THEME BUTTONS ===================== */
+        function updateThemeButtons() {
+        const theme = localStorage.getItem("siteTheme") || "dark";
+        document.getElementById("theme-dark").classList.remove("active");
+        document.getElementById("theme-light").classList.remove("active");
+        document.getElementById("theme-neon").classList.remove("active");
+        document.getElementById("theme-" + theme).classList.add("active");
+        }
         function setTheme(theme) {
         document.documentElement.classList.remove("theme-light","theme-neon");
 
@@ -651,6 +671,12 @@
         if (theme === "neon") document.documentElement.classList.add("theme-neon");
 
         localStorage.setItem("siteTheme", theme);
+
+        // Update active button
+        document.getElementById("theme-dark").classList.remove("active");
+        document.getElementById("theme-light").classList.remove("active");
+        document.getElementById("theme-neon").classList.remove("active");
+        document.getElementById("theme-" + theme).classList.add("active");
         }
 
         function loadTheme() {
