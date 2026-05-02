@@ -740,6 +740,8 @@
             }, 10);
         }
 
+        container.appendChild(notif);
+
         // Auto-hide
         const timer = setTimeout(() => {
             if (notif.parentNode) {
@@ -753,6 +755,8 @@
             notif.remove();
         };
         }
+
+        /* ===================== BADGES DATA ===================== */
         const badges = [
         { id:"home", icon:"🏠", name:"Home Sweet Home", req:3 },
         { id:"games", icon:"🎮", name:"Gamer", req:5 },
