@@ -700,20 +700,20 @@
 
         const notif = document.createElement('div');
         notif.className = 'site-notification';
-        notif.style.background = 'rgba(77,163,255,0.95)';
-        notif.style.color = '#fff';
         notif.style.padding = '16px 20px';
-        notif.style.borderRadius = '12px';
-        notif.style.boxShadow = '0 4px 20px rgba(77,163,255,0.4)';
+        notif.style.borderRadius = '14px';
         notif.style.cursor = 'pointer';
-        notif.style.marginBottom = '10px';
+        notif.style.marginBottom = '12px';
         notif.style.position = 'relative';
         notif.style.overflow = 'hidden';
+        notif.style.border = '1px solid';
+        notif.style.backdropFilter = 'blur(10px)';
+        notif.style.minWidth = '280px';
 
         notif.innerHTML = `
-            <div style="font-weight:bold;margin-bottom:4px;">${title}</div>
-            <div>${body}</div>
-            <div class="notif-progress" style="position:absolute;bottom:0;left:0;height:3px;background:#fff;width:100%;"></div>
+            <div style="font-weight:bold;font-size:15px;margin-bottom:6px;">${title}</div>
+            <div style="font-size:13px;line-height:1.4;opacity:0.9;">${body}</div>
+            <div class="notif-progress" style="position:absolute;bottom:0;left:0;height:3px;width:100%;"></div>
         `;
 
         // Get progress bar element
@@ -721,19 +721,28 @@
 
         // Theme matching
         const theme = localStorage.getItem('siteTheme') || 'dark';
-        let progressColor = '#fff';
+        
         if (theme === 'light') {
-            notif.style.background = 'rgba(255,255,255,0.95)';
-            notif.style.color = '#333';
-            notif.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
-            progressColor = '#4da3ff';
+            notif.style.background = 'rgba(240,245,255,0.98)';
+            notif.style.color = '#1a1a1a';
+            notif.style.boxShadow = '0 8px 32px rgba(0,0,0,0.15)';
+            notif.style.borderColor = 'rgba(77,163,255,0.3)';
+            if (progressBar) progressBar.style.background = 'linear-gradient(90deg, #4da3ff, #2563eb)';
         } else if (theme === 'neon') {
-            notif.style.background = 'rgba(255,0,255,0.95)';
-            notif.style.boxShadow = '0 4px 20px rgba(255,0,255,0.4)';
-            progressColor = '#00ffff';
+            notif.style.background = 'rgba(30,10,50,0.98)';
+            notif.style.color = '#fff';
+            notif.style.boxShadow = '0 0 32px rgba(255,0,255,0.3), inset 0 0 32px rgba(255,0,255,0.1)';
+            notif.style.borderColor = 'rgba(255,0,255,0.5)';
+            if (progressBar) progressBar.style.background = 'linear-gradient(90deg, #ff00ff, #00ffff)';
+        } else {
+            notif.style.background = 'rgba(20,20,30,0.98)';
+            notif.style.color = '#fff';
+            notif.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4)';
+            notif.style.borderColor = 'rgba(77,163,255,0.3)';
+            if (progressBar) progressBar.style.background = 'linear-gradient(90deg, #4da3ff, #7dd3fc)';
         }
+        
         if (progressBar) {
-            progressBar.style.background = progressColor;
             progressBar.style.transition = `width ${duration}ms linear`;
             setTimeout(() => {
                 progressBar.style.width = '0%';
@@ -742,17 +751,27 @@
 
         container.appendChild(notif);
 
-        // Auto-hide
+        // Auto-hide with animation
         const timer = setTimeout(() => {
             if (notif.parentNode) {
-                notif.remove();
+                notif.classList.add('removing');
+                setTimeout(() => {
+                    if (notif.parentNode) {
+                        notif.remove();
+                    }
+                }, 300);
             }
         }, duration);
 
         // Click to dismiss
         notif.onclick = () => {
             clearTimeout(timer);
-            notif.remove();
+            notif.classList.add('removing');
+            setTimeout(() => {
+                if (notif.parentNode) {
+                    notif.remove();
+                }
+            }, 300);
         };
         }
 
@@ -1114,6 +1133,37 @@
 
         .theme-neon .footer a:hover {
             color: #ff00ff;
+        }
+
+        /* ===================== NOTIFICATION ANIMATIONS ===================== */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .site-notification {
+            animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        .site-notification.removing {
+            animation: slideOutRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         </style>
 
