@@ -8,12 +8,12 @@
 <script>
 // Track badge with visit counter
 (function() {
-  const page = 'os';
+  const page = 'locked';
   const visits = parseInt(localStorage.getItem('visit_' + page) || '0') + 1;
   localStorage.setItem('visit_' + page, visits);
   
   const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
-  const req = 3;
+  const req = 12;
   if (visits >= req && !unlocked.includes(page)) {
     unlocked.push(page);
     localStorage.setItem('unlockedBadges', JSON.stringify(unlocked));

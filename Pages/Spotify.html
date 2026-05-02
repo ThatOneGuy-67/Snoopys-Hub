@@ -13,7 +13,7 @@
   localStorage.setItem('visit_' + page, visits);
   
   const unlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]');
-  const req = 3;
+  const req = 7;
   if (visits >= req && !unlocked.includes(page)) {
     unlocked.push(page);
     localStorage.setItem('unlockedBadges', JSON.stringify(unlocked));
