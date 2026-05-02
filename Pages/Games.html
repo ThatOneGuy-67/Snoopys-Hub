@@ -6,7 +6,7 @@
 </head>
 <body style="margin:0">
 <script>
-// Track badge with visit counter
+// Track badge with visit counter and notifications
 (function() {
   const page = 'games';
   const visits = parseInt(localStorage.getItem('visit_' + page) || '0') + 1;
@@ -17,6 +17,11 @@
   if (visits >= req && !unlocked.includes(page)) {
     unlocked.push(page);
     localStorage.setItem('unlockedBadges', JSON.stringify(unlocked));
+    
+    // Trigger notification in parent window
+    if (window.parent && window.parent.triggerNotification) {
+      window.parent.triggerNotification('🏆 Achievement Unlocked!', 'You unlocked "Gamer"!');
+    }
   }
   localStorage.setItem('lastBadgeChecked', unlocked.length);
 })();

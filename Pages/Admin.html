@@ -106,13 +106,29 @@
 
   <!-- Polls Tab -->
   <div id="polls" class="tab-content">
-    <h3>Create Poll</h3>
-    <input id="title" placeholder="Question" />
-    <input id="optionA" placeholder="Option A" />
-    <input id="optionB" placeholder="Option B" />
-    <br>
-    <button onclick="createPoll()">Create Poll</button>
-    <button onclick="resetPoll()" style="background:#ff4d4d;">Reset Poll Votes</button>
+    <h3>🗳 Manage Polls</h3>
+    
+    <div style="margin: 20px 0;">
+      <label style="display: block; margin-bottom: 10px;">Select Poll:</label>
+      <select id="pollSelector" onchange="loadPoll(this.value)" style="width: 240px; padding: 10px; margin: 6px; border-radius: 8px; border: none;">
+        <option value="">-- New Poll --</option>
+      </select>
+      <button onclick="loadPollList()" style="width: auto; padding: 8px 16px;">🔄 Refresh List</button>
+    </div>
+
+    <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+      <h4>Poll Details</h4>
+      <input id="pollName" placeholder="Poll ID (e.g., main, poll2, poll3)" style="background: #333; color: #aaa;" />
+      <input id="title" placeholder="Question" />
+      <input id="optionA" placeholder="Option A" />
+      <input id="optionB" placeholder="Option B" />
+      <br>
+      <button onclick="createPoll()">💾 Save Poll</button>
+      <button onclick="deletePoll()" style="background:#ff4d4d;">🗑 Delete Poll</button>
+      <button onclick="resetPoll()" style="background:#ff9500;">🔄 Reset Votes</button>
+    </div>
+    
+    <div id="pollStatus" style="margin-top: 10px; color: #aaa; font-size: 12px;"></div>
   </div>
 
   <!-- Announcements Tab -->
@@ -227,6 +243,9 @@ onAuthStateChanged(auth, user => {
 
     document.getElementById("loginBox").classList.add("hidden");
     document.getElementById("adminPanel").classList.remove("hidden");
+    
+    // Load poll list when admin logs in
+    loadPollList();
 
   } else {
     document.getElementById("loginBox").classList.remove("hidden");
@@ -234,20 +253,90 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-// 🗳 CREATE POLL
-window.createPoll = async function () {
-  const title = document.getElementById("title").value;
-  const a = document.getElementById("optionA").value;
-  const b = document.getElementById("optionB").value;
+// 🗳 LOAD POLL LIST
+window.loadPollList = async function () {
+  try {
+    const selector = document.getElementById("pollSelector");
+    const pollsRef = doc(db, "polls");
+    
+    // For this demo, we'll query known polls
+    // In production, you'd query a collection
+    const knownPollIds = ["main", "poll2", "poll3", "poll4", "poll5"];
+    
+    selector.innerHTML = '<option value="">-- New Poll --</option>';
+    
+    for (const pollId of knownPollIds) {
+      try {
+        const pollSnap = await getDoc(doc(db, "polls", pollId));
+        if (pollSnap.exists()) {
+          const option = document.createElement("option");
+          option.value = pollId;
+          option.textContent = `${pollId} (${pollSnap.data().title || 'Untitled'})`;
+          selector.appendChild(option);
+        }
+      } catch (e) {
+        // Skip if poll doesn't exist
+      }
+    }
+    
+    document.getElementById("pollStatus").innerText = "✅ Poll list loaded";
+  } catch (err) {
+    console.error("Load poll list error:", err);
+    document.getElementById("pollStatus").innerText = "❌ Error loading polls";
+  }
+};
 
-  if (!title || !a || !b) {
+// 📖 LOAD SPECIFIC POLL
+window.loadPoll = async function(pollId) {
+  if (!pollId) {
+    // Clear form for new poll
+    document.getElementById("pollName").value = "";
+    document.getElementById("title").value = "";
+    document.getElementById("optionA").value = "";
+    document.getElementById("optionB").value = "";
+    document.getElementById("pollStatus").innerText = "Creating new poll...";
+    return;
+  }
+  
+  try {
+    const pollSnap = await getDoc(doc(db, "polls", pollId));
+    
+    if (pollSnap.exists()) {
+      const data = pollSnap.data();
+      document.getElementById("pollName").value = pollId;
+      document.getElementById("pollName").style.background = "#555";
+      document.getElementById("pollName").style.color = "#ccc";
+      document.getElementById("pollName").disabled = true;
+      document.getElementById("title").value = data.title || "";
+      document.getElementById("optionA").value = data.A_label || "";
+      document.getElementById("optionB").value = data.B_label || "";
+      
+      const totalVotes = (data.A || 0) + (data.B || 0);
+      document.getElementById("pollStatus").innerText = `📊 Votes: A=${data.A || 0}, B=${data.B || 0} (Total: ${totalVotes})`;
+    } else {
+      alert("Poll not found");
+      document.getElementById("pollSelector").value = "";
+    }
+  } catch (err) {
+    console.error("Load poll error:", err);
+    alert("Error loading poll");
+  }
+};
+
+// 🗳 CREATE/UPDATE POLL
+window.createPoll = async function () {
+  const pollName = document.getElementById("pollName").value.trim();
+  const title = document.getElementById("title").value.trim();
+  const a = document.getElementById("optionA").value.trim();
+  const b = document.getElementById("optionB").value.trim();
+
+  if (!pollName || !title || !a || !b) {
     alert("Please fill in all fields");
     return;
   }
 
   try {
-    // Update the main poll with new values
-    await setDoc(doc(db, "polls", "main"), {
+    await setDoc(doc(db, "polls", pollName), {
       title: title,
       A_label: a,
       B_label: b,
@@ -255,36 +344,79 @@ window.createPoll = async function () {
       B: 0
     }, { merge: true });
 
-    alert("Poll Created!");
+    document.getElementById("pollStatus").innerText = `✅ Poll '${pollName}' saved!`;
     
-    // Clear localStorage so users can vote again
-    localStorage.removeItem("voted_main");
+    // Reload poll list
+    setTimeout(() => {
+      loadPollList();
+    }, 500);
   } catch (err) {
     console.error("Create poll error:", err);
-    alert("Failed to create poll");
+    document.getElementById("pollStatus").innerText = "❌ Failed to create poll";
+  }
+};
+
+// 🗑 DELETE POLL
+window.deletePoll = async function () {
+  const pollName = document.getElementById("pollName").value.trim();
+  
+  if (!pollName) {
+    alert("No poll selected");
+    return;
+  }
+  
+  const confirmDelete = confirm(`Delete poll '${pollName}'? This cannot be undone.`);
+  if (!confirmDelete) return;
+
+  try {
+    await deleteDoc(doc(db, "polls", pollName));
+    
+    document.getElementById("pollStatus").innerText = `✅ Poll '${pollName}' deleted!`;
+    document.getElementById("pollName").value = "";
+    document.getElementById("title").value = "";
+    document.getElementById("optionA").value = "";
+    document.getElementById("optionB").value = "";
+    document.getElementById("pollName").disabled = false;
+    document.getElementById("pollName").style.background = "";
+    document.getElementById("pollName").style.color = "";
+    document.getElementById("pollSelector").value = "";
+    
+    setTimeout(() => {
+      loadPollList();
+    }, 500);
+  } catch (err) {
+    console.error("Delete poll error:", err);
+    document.getElementById("pollStatus").innerText = "❌ Failed to delete poll";
   }
 };
 
 // 🔄 RESET POLL
 window.resetPoll = async function () {
-  const confirmReset = confirm("Reset all votes and allow everyone to vote again?");
-
+  const pollName = document.getElementById("pollName").value.trim();
+  
+  if (!pollName) {
+    alert("No poll selected");
+    return;
+  }
+  
+  const confirmReset = confirm(`Reset all votes for poll '${pollName}'?`);
   if (!confirmReset) return;
 
   try {
-    const pollRef = doc(db, "polls", "main");
-
-    // Reset votes and add a reset timestamp
-    await updateDoc(pollRef, {
+    await updateDoc(doc(db, "polls", pollName), {
       A: 0,
       B: 0,
       lastReset: Date.now()
     });
 
-    alert("Poll reset successfully! Everyone can vote again.");
+    document.getElementById("pollStatus").innerText = `✅ Poll '${pollName}' votes reset!`;
+    
+    setTimeout(() => {
+      loadPoll(pollName);
+    }, 500);
   } catch (err) {
     console.error("Reset failed:", err);
-    alert("Reset failed — check console");
+    document.getElementById("pollStatus").innerText = "❌ Reset failed";
   }
 };
 

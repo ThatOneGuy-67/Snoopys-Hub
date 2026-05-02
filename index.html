@@ -227,6 +227,12 @@
 
                     showResultsOnly();
                     console.log("Vote recorded successfully");
+                    
+                    // Show notification
+                    const settings = JSON.parse(localStorage.getItem("notifSettings") || "{}");
+                    if (settings.poll) {
+                        showSiteNotification('🗳️ Vote Recorded', 'Thanks for voting on the poll!');
+                    }
 
                 } catch (err) {
                     console.error("Vote error:", err);
@@ -237,10 +243,21 @@
             // =====================
             // 📊 LIVE POLL UPDATES
             // =====================
+            let lastPollTotal = 0;
             function listenPoll() {
             onSnapshot(pollRef, (snap) => {
                 const data = snap.data();
                 if (!data) return;
+                
+                // Check if new votes came in from other users
+                const currentTotal = (data.A || 0) + (data.B || 0);
+                if (lastPollTotal > 0 && currentTotal > lastPollTotal && !hasVoted) {
+                    const settings = JSON.parse(localStorage.getItem("notifSettings") || "{}");
+                    if (settings.poll) {
+                        showSiteNotification('🗳️ New Poll Vote', 'Someone voted on the poll!');
+                    }
+                }
+                lastPollTotal = currentTotal;
 
                 // Update question and labels
                 if (data.title) {
@@ -390,6 +407,12 @@
                                 // Push dashboard down
                                 const dash = document.getElementById("dashboard");
                                 if (dash) dash.style.marginTop = "60px";
+                                
+                                // Show notification
+                                const settings = JSON.parse(localStorage.getItem("notifSettings") || "{}");
+                                if (settings.announce) {
+                                    showSiteNotification('📢 ' + data.title, data.text);
+                                }
                             }
                         }
                     }
@@ -833,10 +856,16 @@
             `${unlocked.length} / ${badges.length} unlocked`;
         }
 
+        /* ===================== CROSS-PAGE NOTIFICATION SYSTEM ===================== */
+        window.triggerNotification = function(title, body, duration = 5000) {
+            showSiteNotification(title, body, duration);
+        };
+
         /* ===================== INIT ===================== */
         window.addEventListener("load", () => {
         loadSettings();
         loadTheme();
+        updateThemeButtons();
         });
 
         </script>
