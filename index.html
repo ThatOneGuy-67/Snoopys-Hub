@@ -16,11 +16,8 @@
 
     <body class="body">
 
-        <!-- IN-SITE NOTIFICATION -->
-        <div id="site-notification" class="hidden" style="position:fixed;top:20px;right:20px;background:rgba(77,163,255,0.95);color:#fff;padding:16px 20px;border-radius:12px;z-index:10000;max-width:300px;box-shadow:0 4px 20px rgba(77,163,255,0.4);cursor:pointer;" onclick="this.classList.add('hidden')">
-            <div id="notif-title" style="font-weight:bold;margin-bottom:4px;"></div>
-            <div id="notif-body"></div>
-        </div>
+        <!-- IN-SITE NOTIFICATIONS -->
+        <div id="notification-container" style="position:fixed;top:20px;right:20px;z-index:10000;max-width:300px;"></div>
         <div id="overlay">
             <div class="card">
 
@@ -671,21 +668,64 @@
         }
 
         /* ===================== SHOW SITE NOTIFICATION ===================== */
-        function showSiteNotification(title, body) {
-        const notif = document.getElementById('site-notification');
-        const titleEl = document.getElementById('notif-title');
-        const bodyEl = document.getElementById('notif-body');
+        function showSiteNotification(title, body, duration = 5000) {
+        const container = document.getElementById('notification-container');
+        if (!container) return;
 
-        if (notif && titleEl && bodyEl) {
-            titleEl.textContent = title;
-            bodyEl.textContent = body;
-            notif.classList.remove('hidden');
+        const notif = document.createElement('div');
+        notif.className = 'site-notification';
+        notif.style.background = 'rgba(77,163,255,0.95)';
+        notif.style.color = '#fff';
+        notif.style.padding = '16px 20px';
+        notif.style.borderRadius = '12px';
+        notif.style.boxShadow = '0 4px 20px rgba(77,163,255,0.4)';
+        notif.style.cursor = 'pointer';
+        notif.style.marginBottom = '10px';
+        notif.style.position = 'relative';
+        notif.style.overflow = 'hidden';
 
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                notif.classList.add('hidden');
-            }, 5000);
+        notif.innerHTML = `
+            <div style="font-weight:bold;margin-bottom:4px;">${title}</div>
+            <div>${body}</div>
+            <div class="notif-progress" style="position:absolute;bottom:0;left:0;height:3px;background:#fff;width:100%;"></div>
+        `;
+
+        // Theme matching
+        const theme = localStorage.getItem('siteTheme') || 'dark';
+        let progressColor = '#fff';
+        if (theme === 'light') {
+            notif.style.background = 'rgba(255,255,255,0.95)';
+            notif.style.color = '#333';
+            notif.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
+            progressColor = '#4da3ff';
+        } else if (theme === 'neon') {
+            notif.style.background = 'rgba(255,0,255,0.95)';
+            notif.style.boxShadow = '0 4px 20px rgba(255,0,255,0.4)';
+            progressColor = '#00ffff';
         }
+        progress.style.background = progressColor;
+
+        container.appendChild(notif);
+
+        // Animate progress bar
+        const progress = notif.querySelector('.notif-progress');
+        progress.style.transition = `width ${duration}ms linear`;
+        setTimeout(() => {
+            progress.style.width = '0%';
+        }, 10);
+
+        // Auto-hide
+        const timer = setTimeout(() => {
+            if (notif.parentNode) {
+                notif.remove();
+            }
+        }, duration);
+
+        // Click to dismiss
+        notif.onclick = () => {
+            clearTimeout(timer);
+            notif.remove();
+        };
         }
 
         /* ===================== BADGES DATA ===================== */
