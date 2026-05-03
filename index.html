@@ -10,12 +10,18 @@
                 const theme = localStorage.getItem('siteTheme') || 'dark';
                 if (theme === 'light') document.documentElement.classList.add('theme-light');
                 if (theme === 'neon') document.documentElement.classList.add('theme-neon');
+                if (theme === 'spring') document.documentElement.classList.add('theme-spring');
+                if (theme === 'summer') document.documentElement.classList.add('theme-summer');
+                if (theme === 'autumn') document.documentElement.classList.add('theme-autumn');
+                if (theme === 'winter') document.documentElement.classList.add('theme-winter');
             })();
         </script>
     </head>
 
     <body class="body">
         <script src="notification-helper.js"></script>
+
+        <canvas id="theme-bg"></canvas>
 
         <!-- IN-SITE NOTIFICATIONS -->
         <div id="notification-container" style="position:fixed;top:20px;right:20px;z-index:10000;max-width:300px;"></div>
@@ -508,10 +514,14 @@
             <div id="tab-settings" class="ui-tab">
 
             <div class="settings-section">
-                <h3>🎨 Theme</h3>
-                <button id="theme-dark" onclick="setTheme('dark')">🌙 Dark</button>
+                <h3>Theme</h3>
+                <button id="theme-dark" onclick="setTheme('dark')">Default</button>
                 <button id="theme-light" onclick="setTheme('light')">☀️ Light</button>
                 <button id="theme-neon" onclick="setTheme('neon')">🟪 Neon</button>
+                <button id="theme-spring" onclick="setTheme('spring')">🌱 Spring</button>
+                <button id="theme-summer" onclick="setTheme('summer')">☀️ Summer</button>
+                <button id="theme-autumn" onclick="setTheme('autumn')">🍂 Autumn</button>
+                <button id="theme-winter" onclick="setTheme('winter')">❄️ Winter</button>
             </div>
 
             <div class="settings-section">
@@ -596,6 +606,14 @@
         }
 
         .hidden { display: none !important; }
+
+        #theme-bg {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        display: none;
+        }
 
         .ui-topbar {
         display: flex;
@@ -741,33 +759,217 @@
         /* ===================== UPDATE THEME BUTTONS ===================== */
         function updateThemeButtons() {
         const theme = localStorage.getItem("siteTheme") || "dark";
-        document.getElementById("theme-dark").classList.remove("active");
-        document.getElementById("theme-light").classList.remove("active");
-        document.getElementById("theme-neon").classList.remove("active");
-        document.getElementById("theme-" + theme).classList.add("active");
+        ["dark","light","neon","spring","summer","autumn","winter"].forEach(id => {
+            const btn = document.getElementById("theme-" + id);
+            if (btn) btn.classList.remove("active");
+        });
+        const activeBtn = document.getElementById("theme-" + theme);
+        if (activeBtn) activeBtn.classList.add("active");
         }
         function setTheme(theme) {
-        document.documentElement.classList.remove("theme-light","theme-neon");
+        document.documentElement.classList.remove("theme-light","theme-neon","theme-spring","theme-summer","theme-autumn","theme-winter");
 
         if (theme === "light") document.documentElement.classList.add("theme-light");
         if (theme === "neon") document.documentElement.classList.add("theme-neon");
+        if (theme === "spring") document.documentElement.classList.add("theme-spring");
+        if (theme === "summer") document.documentElement.classList.add("theme-summer");
+        if (theme === "autumn") document.documentElement.classList.add("theme-autumn");
+        if (theme === "winter") document.documentElement.classList.add("theme-winter");
 
         localStorage.setItem("siteTheme", theme);
+        setThemeBackground(theme);
 
         // Update active button
-        document.getElementById("theme-dark").classList.remove("active");
-        document.getElementById("theme-light").classList.remove("active");
-        document.getElementById("theme-neon").classList.remove("active");
-        document.getElementById("theme-" + theme).classList.add("active");
+        ["dark","light","neon","spring","summer","autumn","winter"].forEach(id => {
+            const btn = document.getElementById("theme-" + id);
+            if (btn) btn.classList.remove("active");
+        });
+        const activeBtn = document.getElementById("theme-" + theme);
+        if (activeBtn) activeBtn.classList.add("active");
         }
 
         function loadTheme() {
         const t = localStorage.getItem("siteTheme") || "dark";
 
-        document.documentElement.classList.remove("theme-light","theme-neon");
+        document.documentElement.classList.remove("theme-light","theme-neon","theme-spring","theme-summer","theme-autumn","theme-winter");
 
         if (t === "light") document.documentElement.classList.add("theme-light");
         if (t === "neon") document.documentElement.classList.add("theme-neon");
+        if (t === "spring") document.documentElement.classList.add("theme-spring");
+        if (t === "summer") document.documentElement.classList.add("theme-summer");
+        if (t === "autumn") document.documentElement.classList.add("theme-autumn");
+        if (t === "winter") document.documentElement.classList.add("theme-winter");
+
+        setThemeBackground(t);
+        }
+
+        /* ===================== SEASONAL BACKGROUND ===================== */
+        const themeCanvas = document.getElementById("theme-bg");
+        const themeCtx = themeCanvas ? themeCanvas.getContext("2d") : null;
+        let themeSeason = null;
+        let themeItems = [];
+        let themeStars = [];
+        let themeTime = 0;
+        const themeItemCount = 120;
+
+        function resizeThemeCanvas() {
+        if (!themeCanvas) return;
+        themeCanvas.width = window.innerWidth;
+        themeCanvas.height = window.innerHeight;
+        }
+
+        window.addEventListener("resize", resizeThemeCanvas);
+        resizeThemeCanvas();
+
+        function createThemeItems(type) {
+        themeItems = [];
+        for (let i = 0; i < themeItemCount; i++) {
+            themeItems.push({
+                x: Math.random() * innerWidth,
+                y: Math.random() * innerHeight,
+                size: Math.random() * 3 + 1,
+                speedX: (Math.random() - 0.5) * 1,
+                speedY: Math.random() * 2 + 1,
+                rot: Math.random() * 360,
+                type
+            });
+        }
+        if (type === "summer") initThemeStars();
+        }
+
+        function initThemeStars() {
+        themeStars = [];
+        if (!themeCanvas) return;
+        for (let i = 0; i < 150; i++) {
+            themeStars.push({
+                x: Math.random() * themeCanvas.width,
+                y: Math.random() * themeCanvas.height * 0.6,
+                size: Math.random() * 2,
+                base: Math.random()
+            });
+        }
+        }
+
+        function drawThemeStars(intensity) {
+        if (!themeCtx) return;
+        themeStars.forEach(s => {
+            themeCtx.fillStyle = `rgba(255,255,255,${intensity * s.base})`;
+            themeCtx.beginPath();
+            themeCtx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+            themeCtx.fill();
+        });
+        }
+
+        function leaf(x, y, rot, size) {
+        if (!themeCtx) return;
+        themeCtx.save();
+        themeCtx.translate(x, y);
+        themeCtx.rotate(rot);
+        themeCtx.fillRect(-2, -6, size, size * 3);
+        themeCtx.restore();
+        }
+
+        function setThemeBackground(theme) {
+        if (!themeCanvas || !themeCtx) return;
+        if (["spring","summer","autumn","winter"].includes(theme)) {
+            themeSeason = theme;
+            themeCanvas.style.display = "block";
+            createThemeItems(theme);
+        } else {
+            themeSeason = null;
+            themeCanvas.style.display = "none";
+            themeCtx.clearRect(0, 0, themeCanvas.width, themeCanvas.height);
+        }
+        }
+
+        function drawThemeBg() {
+        if (!themeCanvas || !themeCtx) {
+            requestAnimationFrame(drawThemeBg);
+            return;
+        }
+
+        themeTime += 0.0012;
+        themeCtx.clearRect(0, 0, themeCanvas.width, themeCanvas.height);
+
+        if (themeSeason === "spring") {
+            themeCtx.strokeStyle = "rgba(120,180,255,0.5)";
+            themeItems.forEach(p => {
+                p.y += p.speedY * 2;
+                if (p.y > themeCanvas.height) {
+                    p.y = -10;
+                    p.x = Math.random() * themeCanvas.width;
+                }
+                themeCtx.beginPath();
+                themeCtx.moveTo(p.x, p.y);
+                themeCtx.lineTo(p.x - 2, p.y + 10);
+                themeCtx.stroke();
+            });
+        } else if (themeSeason === "summer") {
+            const raw = (Math.sin(themeTime) + 1) / 2;
+            const cycle = raw * raw * (3 - 2 * raw);
+            const cx = themeCanvas.width - 120;
+            const cy = 120;
+            const sky = themeCtx.createLinearGradient(0, 0, 0, themeCanvas.height);
+            if (cycle < 0.5) {
+                const t = cycle / 0.5;
+                sky.addColorStop(0, `rgba(${Math.round(lerp(80, 255, t))}, ${Math.round(lerp(170, 140, t))}, 255, 1)`);
+                sky.addColorStop(1, `rgba(20, 40, 80, 1)`);
+            } else {
+                const t = (cycle - 0.5) / 0.5;
+                sky.addColorStop(0, `rgba(${Math.round(lerp(255, 10, t))}, ${Math.round(lerp(140, 10, t))}, ${Math.round(lerp(60, 40, t))}, 1)`);
+                sky.addColorStop(1, `rgba(5, 5, 20, 1)`);
+            }
+            themeCtx.fillStyle = sky;
+            themeCtx.fillRect(0, 0, themeCanvas.width, themeCanvas.height);
+            const isNight = cycle > 0.5;
+            themeCtx.fillStyle = isNight ? "rgba(220,220,255,0.85)" : "rgba(255,230,120,1)";
+            themeCtx.beginPath();
+            themeCtx.arc(cx, cy, 40, 0, Math.PI * 2);
+            themeCtx.fill();
+            if (isNight) {
+                drawThemeStars((cycle - 0.5) * 2);
+            }
+            const brightness = 1 - cycle;
+            const gradient = themeCtx.createRadialGradient(cx, cy, 10, cx, cy, 300);
+            gradient.addColorStop(0, `rgba(255,255,180,${0.25 * brightness})`);
+            gradient.addColorStop(1, "rgba(255,255,180,0)");
+            themeCtx.fillStyle = gradient;
+            themeCtx.beginPath();
+            themeCtx.arc(cx, cy, 300, 0, Math.PI * 2);
+            themeCtx.fill();
+        } else if (themeSeason === "autumn") {
+            themeItems.forEach(p => {
+                p.x += p.speedX * 0.5;
+                p.y += p.speedY;
+                p.rot += 0.02;
+                if (p.y > themeCanvas.height) {
+                    p.y = -10;
+                    p.x = Math.random() * themeCanvas.width;
+                }
+                themeCtx.fillStyle = "rgba(255,140,60,0.8)";
+                leaf(p.x, p.y, p.rot, p.size);
+            });
+        } else if (themeSeason === "winter") {
+            themeCtx.fillStyle = "rgba(255,255,255,0.8)";
+            themeItems.forEach(p => {
+                p.y += p.speedY;
+                if (p.y > themeCanvas.height) {
+                    p.y = -10;
+                    p.x = Math.random() * themeCanvas.width;
+                }
+                themeCtx.beginPath();
+                themeCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                themeCtx.fill();
+            });
+        }
+
+        requestAnimationFrame(drawThemeBg);
+        }
+
+        drawThemeBg();
+
+        function lerp(a, b, t) {
+        return a + (b - a) * t;
         }
 
         /* ===================== TEST NOTIFICATIONS ===================== */
@@ -1187,6 +1389,7 @@
             --text-color: #333;
             --panel-bg: rgba(255,255,255,0.9);
             --accent-color: #007acc;
+            --accent: #007acc;
         }
 
         .theme-light .body {
@@ -1235,6 +1438,7 @@
         .theme-neon {
             --accent-color: #ff00ff;
             --bg-overlay: rgba(20,20,50,0.8);
+            --accent: #ff00ff;
         }
 
         .theme-neon .body {
@@ -1254,6 +1458,110 @@
 
         .theme-neon .footer a:hover {
             color: #ff00ff;
+        }
+
+        .theme-spring {
+            --accent-color: #f1af9b;
+            --accent: #e9b095;
+            --bg-overlay: rgba(254, 196, 185, 0.288);
+        }
+
+        .theme-spring .body {
+            background: linear-gradient(var(--bg-overlay), var(--bg-overlay)), radial-gradient(circle at top left, rgba(124, 209, 133, 0.35), transparent 35%), linear-gradient(180deg, #000000 0%, #000000 100%);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #1c1d1c;
+        }
+
+        .theme-spring .panel,
+        .theme-spring .footer,
+        .theme-spring #ui-card {
+            background: rgba(233, 180, 155, 0.651);
+            color: #000000;
+        }
+
+        .theme-spring button {
+            background: rgba(235, 166, 166, 0.699);
+            color: #0a0a0a;
+        }
+
+        .theme-summer {
+            --accent-color: #f9a825;
+            --accent: #f9a825;
+            --bg-overlay: rgba(255,246,220,0.88);
+        }
+
+        .theme-summer .body {
+            background: linear-gradient(var(--bg-overlay), var(--bg-overlay)), radial-gradient(circle at top right, rgba(255,235,156,0.45), transparent 30%), linear-gradient(180deg, #ffe6a8 0%, #f8f1d1 100%);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #3b2b0d;
+        }
+
+        .theme-summer .panel,
+        .theme-summer .footer,
+        .theme-summer #ui-card {
+            background: rgba(124, 124, 124, 0.9);
+            color: #3b2b0d;
+        }
+
+        .theme-summer button {
+            background: rgba(0,0,0,0.08);
+            color: #3b2b0d;
+        }
+
+        .theme-autumn {
+            --accent-color: #d9730c;
+            --accent: #d9730c;
+            --bg-overlay: rgba(44,16,0,0.7);
+        }
+
+        .theme-autumn .body {
+            background: linear-gradient(var(--bg-overlay), var(--bg-overlay)), radial-gradient(circle at top left, rgba(255,172,84,0.35), transparent 35%), linear-gradient(180deg, #f3dec3 0%, #e0b17b 100%);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #3b280b;
+        }
+
+        .theme-autumn .panel,
+        .theme-autumn .footer,
+        .theme-autumn #ui-card {
+            background: rgba(184, 100, 6, 0.9);
+            color: #ffffff;
+        }
+
+        .theme-autumn button {
+            background: rgba(0,0,0,0.08);
+            color: #3b280b;
+        }
+
+        .theme-winter {
+            --accent-color: #7dd3fc;
+            --accent: #7dd3fc;
+            --bg-overlay: rgba(10,18,40,0.9);
+        }
+
+        .theme-winter .body {
+            background: linear-gradient(var(--bg-overlay), var(--bg-overlay)), radial-gradient(circle at top left, rgba(255,255,255,0.15), transparent 25%), linear-gradient(180deg, #0b1320 0%, #1c2b42 100%);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #eef7ff;
+        }
+
+        .theme-winter .panel,
+        .theme-winter .footer,
+        .theme-winter #ui-card {
+            background: rgba(18,35,60,0.94);
+            color: #eef7ff;
+        }
+
+        .theme-winter button {
+            background: rgba(255,255,255,0.08);
+            color: #eef7ff;
         }
 
         /* ===================== NOTIFICATION ANIMATIONS ===================== */

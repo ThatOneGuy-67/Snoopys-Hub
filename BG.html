@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BG</title>
+
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #0b0d12;
+  font-family: Arial;
+}
+
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+/* buttons */
+.controls {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+button:hover { background: rgba(255,255,255,0.25); }
+</style>
+</head>
+
+<body>
+
+<div class="controls">
+  <button onclick="setSeason('spring')">Spring</button>
+  <button onclick="setSeason('summer')">Summer</button>
+  <button onclick="setSeason('autumn')">Autumn</button>
+  <button onclick="setSeason('winter')">Winter</button>
+</div>
+
+<canvas id="bg"></canvas>
+
+<script>
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+// season
+let season = "winter";
+
+// particles
+let items = [];
+const count = 120;
+
+function create(type) {
+  items = [];
+  for (let i = 0; i < count; i++) {
+    items.push({
+      x: Math.random() * innerWidth,
+      y: Math.random() * innerHeight,
+      size: Math.random() * 3 + 1,
+      speedX: (Math.random() - 0.5) * 1,
+      speedY: Math.random() * 2 + 1,
+      rot: Math.random() * 360,
+      type
+    });
+  }
+}
+
+create("snow");
+
+function setSeason(s) {
+  season = s;
+  create(s);
+}
+
+// mouse
+let mouse = { x: innerWidth / 2, y: innerHeight / 2 };
+
+window.addEventListener("mousemove", e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+
+// lerp helper
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+// stars
+let stars = [];
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 150; i++) {
+    stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height * 0.6,
+      size: Math.random() * 2,
+      base: Math.random()
+    });
+  }
+}
+initStars();
+
+function drawStars(intensity) {
+  stars.forEach(s => {
+    ctx.fillStyle = `rgba(255,255,255,${intensity * s.base})`;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+// leaf
+function leaf(x, y, rot, size) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rot);
+  ctx.fillRect(-2, -6, size, size * 3);
+  ctx.restore();
+}
+
+// TIME
+let time = 0;
+
+/* ---------------- SUMMER SKY ---------------- */
+function sunRays() {
+
+  // ⏳ SLOWER + SMOOTHER CYCLE
+  let raw = (Math.sin(time) + 1) / 2;
+  let cycle = raw * raw * (3 - 2 * raw); // smoothstep easing
+
+  const cx = canvas.width - 120;
+  const cy = 120;
+
+  /* SKY GRADIENT */
+  let sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+
+  if (cycle < 0.5) {
+    let t = cycle / 0.5;
+
+    // BLUE → SUNSET
+    sky.addColorStop(0, `rgba(${lerp(80, 255, t)}, ${lerp(170, 140, t)}, 255, 1)`);
+    sky.addColorStop(1, `rgba(20, 40, 80, 1)`);
+
+  } else {
+    let t = (cycle - 0.5) / 0.5;
+
+    // SUNSET → NIGHT
+    sky.addColorStop(0, `rgba(${lerp(255, 10, t)}, ${lerp(140, 10, t)}, ${lerp(60, 40, t)}, 1)`);
+    sky.addColorStop(1, `rgba(5, 5, 20, 1)`);
+  }
+
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  let isNight = cycle > 0.5;
+
+  ctx.fillStyle = isNight
+    ? "rgba(220,220,255,0.85)"
+    : "rgba(255,230,120,1)";
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, 40, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (isNight) {
+    drawStars((cycle - 0.5) * 2);
+  }
+
+  /* SUN RAYS */
+  let brightness = 1 - cycle;
+
+  const gradient = ctx.createRadialGradient(cx, cy, 10, cx, cy, 300);
+  gradient.addColorStop(0, `rgba(255,255,180,${0.25 * brightness})`);
+  gradient.addColorStop(1, "rgba(255,255,180,0)");
+
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 300, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function draw() {
+
+  time += 0.0012;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  /* SPRING */
+  if (season === "spring") {
+    ctx.strokeStyle = "rgba(120,180,255,0.5)";
+    items.forEach(p => {
+      p.y += p.speedY * 2;
+
+      if (p.y > canvas.height) {
+        p.y = -10;
+        p.x = Math.random() * canvas.width;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - 2, p.y + 10);
+      ctx.stroke();
+    });
+  }
+
+  /* SUMMER */
+  if (season === "summer") {
+    sunRays();
+  }
+
+  /* AUTUMN */
+  if (season === "autumn") {
+    items.forEach(p => {
+      p.x += p.speedX * 0.5;
+      p.y += p.speedY;
+      p.rot += 0.02;
+
+      if (p.y > canvas.height) {
+        p.y = -10;
+        p.x = Math.random() * canvas.width;
+      }
+
+      ctx.fillStyle = "rgba(255,140,60,0.8)";
+      leaf(p.x, p.y, p.rot, p.size);
+    });
+  }
+
+  /* WINTER */
+  if (season === "winter") {
+    ctx.fillStyle = "rgba(255,255,255,0.8)";
+    items.forEach(p => {
+      p.y += p.speedY;
+
+      if (p.y > canvas.height) {
+        p.y = -10;
+        p.x = Math.random() * canvas.width;
+      }
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+
+</body>
+</html>
