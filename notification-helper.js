@@ -129,6 +129,11 @@
         : Math.random().toString(36).slice(2) + '_' + Date.now().toString(36);
       localStorage.setItem(key, id);
     }
+    // Strip any existing 'presence_' prefix (legacy data cleanup)
+    if (id.startsWith('presence_')) {
+      id = id.replace(/^presence_/, '');
+      localStorage.setItem(key, id);
+    }
     return id;
   }
 
