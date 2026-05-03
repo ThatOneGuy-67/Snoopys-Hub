@@ -133,6 +133,7 @@
       <p style="font-size: 12px; color: #aaa; margin-bottom: 10px;">Set which poll appears on the main site for users to vote on.</p>
       <select id="activePollSelector" style="width: 240px; padding: 10px; margin: 6px; border-radius: 8px; border: none;">
         <option value="">-- Select Active Poll --</option>
+        <option value="none">🚫 No Poll (Hide Poll)</option>
       </select>
       <button onclick="setActivePoll()" style="width: auto; padding: 8px 16px; background: #4CAF50;">✅ Set Active</button>
       <div id="activePollStatus" style="margin-top: 10px; color: #aaa; font-size: 12px;"></div>
@@ -275,7 +276,7 @@ window.loadPollList = async function () {
     const pollsSnapshot = await getDocs(collection(db, "polls"));
     
     selector.innerHTML = '<option value="">-- New Poll --</option>';
-    activeSelector.innerHTML = '<option value="">-- Select Active Poll --</option>';
+    activeSelector.innerHTML = '<option value="">-- Select Active Poll --</option><option value="none">🚫 No Poll (Hide Poll)</option>';
     
     pollsSnapshot.forEach((pollDoc) => {
       const pollId = pollDoc.id;
@@ -312,7 +313,8 @@ window.loadActivePoll = async function () {
       const data = annSnap.data();
       const activePollId = data.activePollId;
       document.getElementById("activePollSelector").value = activePollId || "";
-      document.getElementById("activePollStatus").innerText = `✅ Active poll: ${activePollId || 'None'}`;
+      const displayText = activePollId === "none" ? "No poll (hidden)" : (activePollId || 'None');
+      document.getElementById("activePollStatus").innerText = `✅ Active poll: ${displayText}`;
     } else {
       document.getElementById("activePollSelector").value = "";
       document.getElementById("activePollStatus").innerText = "ℹ️ No active poll set";
@@ -327,8 +329,9 @@ window.loadActivePoll = async function () {
 window.setActivePoll = async function () {
   const activePollId = document.getElementById("activePollSelector").value;
   
-  if (!activePollId) {
-    alert("Please select a poll to set as active");
+  // Allow empty string (no selection) or "none" for hiding poll
+  if (activePollId === "") {
+    alert("Please select an active poll option");
     return;
   }
 
@@ -348,7 +351,8 @@ window.setActivePoll = async function () {
       activePollSetBy: user.email
     }, { merge: true });
     
-    document.getElementById("activePollStatus").innerText = `✅ Active poll set to: ${activePollId}`;
+    const displayText = activePollId === "none" ? "No poll (hidden)" : activePollId;
+    document.getElementById("activePollStatus").innerText = `✅ Active poll set to: ${displayText}`;
     
     // Notify main site to update
     localStorage.setItem('activePollUpdate', JSON.stringify({

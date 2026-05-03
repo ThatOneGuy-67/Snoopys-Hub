@@ -154,6 +154,14 @@
                     activePollId = annData.activePollId || "main";
                 }
                 
+                // If no poll is active, hide the poll overlay
+                if (activePollId === "none") {
+                    const overlay = document.getElementById("overlay");
+                    if (overlay) overlay.style.display = "none";
+                    console.log("Poll hidden - no active poll set");
+                    return; // Exit early, don't initialize poll
+                }
+                
                 // Set the poll reference to the active poll
                 pollRef = doc(db, "polls", activePollId);
                 
