@@ -121,28 +121,10 @@
   }
 
   function generatePresenceId() {
-    const key = 'presenceId';
-    let id = null;
-
-    try {
-      if (typeof sessionStorage !== 'undefined') {
-        id = sessionStorage.getItem(key);
-        if (!id) {
-          id = Math.random().toString(36).slice(2) + '_' + Date.now().toString(36);
-          sessionStorage.setItem(key, id);
-        }
-        return id;
-      }
-    } catch (e) {
-      console.warn('sessionStorage unavailable, falling back to localStorage for presence ID');
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
     }
-
-    id = localStorage.getItem(key);
-    if (!id) {
-      id = Math.random().toString(36).slice(2) + '_' + Date.now().toString(36);
-      localStorage.setItem(key, id);
-    }
-    return id;
+    return Math.random().toString(36).slice(2) + '_' + Date.now().toString(36);
   }
 
   let pendingOnlineCount = null;
@@ -234,6 +216,14 @@
         }
       };
 
+      const removePresence = () => {
+        try {
+          localStorage.removeItem(storageKey);
+        } catch (e) {
+          // ignore cleanup errors
+        }
+      };
+
       const countOnlineUsers = () => {
         const now = Date.now();
         const maxAge = 90000; // 90 seconds
@@ -286,6 +276,10 @@
       // Initial update
       updatePresence();
       
+      // Cleanup if this tab unloads
+      window.addEventListener('beforeunload', removePresence);
+      window.addEventListener('pagehide', removePresence);
+
       // Update every 25 seconds
       setInterval(updatePresence, 25000);
 
