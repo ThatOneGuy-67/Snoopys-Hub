@@ -159,18 +159,28 @@
     return widget;
   }
 
+  function whenBodyReady(callback) {
+    if (document.body || document.readyState !== 'loading') {
+      callback();
+      return;
+    }
+    document.addEventListener('DOMContentLoaded', callback, { once: true });
+  }
+
   function updateOnlineCountWidget(count) {
-    if (!document.body) {
-      pendingOnlineCount = count;
-      document.addEventListener('DOMContentLoaded', () => {
-        const widget = createOnlineCountWidget();
-        if (widget) widget.innerText = `${pendingOnlineCount} ${pendingOnlineCount === 1 ? 'person' : 'people'} online`;
-      }, { once: true });
+    const widget = createOnlineCountWidget();
+    if (widget) {
+      widget.innerText = `${count} ${count === 1 ? 'person' : 'people'} online`;
       return;
     }
 
-    const widget = createOnlineCountWidget();
-    if (widget) widget.innerText = `${count} ${count === 1 ? 'person' : 'people'} online`;
+    pendingOnlineCount = count;
+    whenBodyReady(() => {
+      const readyWidget = createOnlineCountWidget();
+      if (readyWidget) {
+        readyWidget.innerText = `${pendingOnlineCount} ${pendingOnlineCount === 1 ? 'person' : 'people'} online`;
+      }
+    });
   }
 
   function initOnlinePresence() {
@@ -222,6 +232,7 @@
             if (key) keys.push(key);
           }
 
+          const staleKeys = [];
           for (const key of keys) {
             if (key && key.startsWith('presence_')) {
               try {
@@ -229,13 +240,22 @@
                 if (data && data.timestamp && (now - data.timestamp) < maxAge) {
                   count++;
                   foundIds.push(key);
+                } else {
+                  staleKeys.push(key);
                 }
               } catch (e) {
                 // ignore malformed data
+                staleKeys.push(key);
               }
             }
           }
-          
+
+          if (staleKeys.length > 0) {
+            staleKeys.forEach((staleKey) => {
+              try { localStorage.removeItem(staleKey); } catch (e) { /* ignore */ }
+            });
+          }
+
           if (foundIds.length > 0) {
             console.log('Online presence count:', count, 'IDs:', foundIds.slice(0, 3));
           }
