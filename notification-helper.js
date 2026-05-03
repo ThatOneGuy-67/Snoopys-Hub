@@ -120,6 +120,103 @@
     });
   }
 
+  function generatePresenceId() {
+    let id = localStorage.getItem('presenceId');
+    if (!id) {
+      id = 'presence_' + Math.random().toString(36).slice(2) + '_' + Date.now().toString(36);
+      localStorage.setItem('presenceId', id);
+    }
+    return id;
+  }
+
+  let pendingOnlineCount = null;
+
+  function createOnlineCountWidget() {
+    if (!document.body) return null;
+    let widget = document.getElementById('online-count-widget');
+    if (widget) return widget;
+
+    widget = document.createElement('div');
+    widget.id = 'online-count-widget';
+    widget.style.position = 'fixed';
+    widget.style.bottom = '20px';
+    widget.style.left = '20px';
+    widget.style.zIndex = '10001';
+    widget.style.background = 'rgba(20,24,38,0.92)';
+    widget.style.color = '#fff';
+    widget.style.padding = '10px 14px';
+    widget.style.borderRadius = '14px';
+    widget.style.border = '1px solid rgba(77,163,255,0.25)';
+    widget.style.boxShadow = '0 12px 36px rgba(0,0,0,0.25)';
+    widget.style.fontSize = '13px';
+    widget.style.fontWeight = '600';
+    widget.style.backdropFilter = 'blur(15px)';
+    widget.style.pointerEvents = 'none';
+    widget.style.opacity = '0.95';
+    widget.innerText = 'Online: …';
+
+    document.body.appendChild(widget);
+    return widget;
+  }
+
+  function updateOnlineCountWidget(count) {
+    if (!document.body) {
+      pendingOnlineCount = count;
+      document.addEventListener('DOMContentLoaded', () => {
+        const widget = createOnlineCountWidget();
+        if (widget) widget.innerText = `${pendingOnlineCount} ${pendingOnlineCount === 1 ? 'person' : 'people'} online`;
+      }, { once: true });
+      return;
+    }
+
+    const widget = createOnlineCountWidget();
+    if (widget) widget.innerText = `${count} ${count === 1 ? 'person' : 'people'} online`;
+  }
+
+  async function initOnlinePresence() {
+    const firebaseConfig = {
+      apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
+      authDomain: "snoopys-hub.firebaseapp.com",
+      projectId: "snoopys-hub",
+      storageBucket: "snoopys-hub.appspot.com",
+      messagingSenderId: "711107016273",
+      appId: "1:711107016273:web:c0680189aa61f6b9052a70"
+    };
+
+    try {
+      const firebaseApp = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+      const firebaseFirestore = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      const app = firebaseApp.initializeApp(firebaseConfig);
+      const db = firebaseFirestore.getFirestore(app);
+      const presenceId = generatePresenceId();
+      const presenceDoc = firebaseFirestore.doc(firebaseFirestore.collection(db, 'presence'), presenceId);
+      const updatePresence = async () => {
+        await firebaseFirestore.setDoc(presenceDoc, {
+          page: location.pathname,
+          title: document.title,
+          lastSeen: firebaseFirestore.serverTimestamp(),
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      };
+
+      await updatePresence();
+      setInterval(() => updatePresence().catch(err => console.warn('Presence update failed', err)), 25000);
+
+      const activeWindow = firebaseFirestore.query(
+        firebaseFirestore.collection(db, 'presence'),
+        firebaseFirestore.where('lastSeen', '>', firebaseFirestore.Timestamp.fromDate(new Date(Date.now() - 90000)))
+      );
+
+      firebaseFirestore.onSnapshot(activeWindow, snap => {
+        updateOnlineCountWidget(snap.size);
+      });
+    } catch (err) {
+      console.warn('Online presence init failed', err);
+      const widget = createOnlineCountWidget();
+      widget.innerText = 'Online: unavailable';
+    }
+  }
+
   function handleStorageEvent(event) {
     if (!event.key || event.newValue === null) return;
     const settings = JSON.parse(localStorage.getItem('notifSettings') || '{}');
@@ -189,4 +286,6 @@
       // ignore invalid data
     }
   }
+
+  initOnlinePresence();
 })();
