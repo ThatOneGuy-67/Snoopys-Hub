@@ -136,7 +136,8 @@
             // =====================
             // 🗳 POLL STATE
             // =====================
-            const pollRef = doc(db, "polls", "main");
+            let pollRef = null; // Will be set after loading active poll
+            let activePollId = "main"; // Default fallback
 
             let pollReady = false;
             let hasVoted = false;
@@ -146,6 +147,15 @@
             // =====================
             async function initPoll() {
             try {
+                // First, get the active poll ID
+                const activePollSnap = await getDoc(doc(db, "site", "activePoll"));
+                if (activePollSnap.exists()) {
+                    activePollId = activePollSnap.data().pollId || "main";
+                }
+                
+                // Set the poll reference to the active poll
+                pollRef = doc(db, "polls", activePollId);
+                
                 const snap = await getDoc(pollRef);
 
                 if (!snap.exists()) {
@@ -165,13 +175,13 @@
 
                 // Check if poll was reset since we last voted
                 const data = snap.data();
-                const storedVote = localStorage.getItem("voted_main");
+                const storedVote = localStorage.getItem(`voted_${activePollId}`);
                 const storedReset = localStorage.getItem("pollResetTime");
                 
                 if (storedVote && data?.lastReset) {
                     // If poll was reset after we voted, clear the vote
                     if (data.lastReset > storedReset) {
-                        localStorage.removeItem("voted_main");
+                        localStorage.removeItem(`voted_${activePollId}`);
                         localStorage.removeItem("pollResetTime");
                     } else {
                         hasVoted = true;
@@ -222,7 +232,7 @@
                     }, { merge: true });
 
                     // Store vote and the reset time to check against later
-                    localStorage.setItem("voted_main", option);
+                    localStorage.setItem(`voted_${activePollId}`, option);
                     localStorage.setItem("pollResetTime", data.lastReset || 0);
                     hasVoted = true;
 
@@ -315,6 +325,15 @@
             // 🚀 START
             // =====================
             initPoll();
+
+            // Listen for active poll changes from admin panel
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'activePollUpdate') {
+                    console.log("Active poll changed, reloading...");
+                    // Reload the page to show the new active poll
+                    location.reload();
+                }
+            });
 
             // Attach click listeners directly for better reliability
             setTimeout(() => {

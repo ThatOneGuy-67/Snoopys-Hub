@@ -127,6 +127,16 @@
       <button onclick="deletePoll()" style="background:#ff4d4d;">🗑 Delete Poll</button>
       <button onclick="resetPoll()" style="background:#ff9500;">🔄 Reset Votes</button>
     </div>
+
+    <div style="margin: 20px 0; padding: 15px; background: rgba(0,255,0,0.1); border-radius: 8px; border: 1px solid #4CAF50;">
+      <h4>🎯 Active Poll Settings</h4>
+      <p style="font-size: 12px; color: #aaa; margin-bottom: 10px;">Set which poll appears on the main site for users to vote on.</p>
+      <select id="activePollSelector" style="width: 240px; padding: 10px; margin: 6px; border-radius: 8px; border: none;">
+        <option value="">-- Select Active Poll --</option>
+      </select>
+      <button onclick="setActivePoll()" style="width: auto; padding: 8px 16px; background: #4CAF50;">✅ Set Active</button>
+      <div id="activePollStatus" style="margin-top: 10px; color: #aaa; font-size: 12px;"></div>
+    </div>
     
     <div id="pollStatus" style="margin-top: 10px; color: #aaa; font-size: 12px;"></div>
   </div>
@@ -259,25 +269,85 @@ onAuthStateChanged(auth, user => {
 window.loadPollList = async function () {
   try {
     const selector = document.getElementById("pollSelector");
+    const activeSelector = document.getElementById("activePollSelector");
     
     // Query all documents in the polls collection
     const pollsSnapshot = await getDocs(collection(db, "polls"));
     
     selector.innerHTML = '<option value="">-- New Poll --</option>';
+    activeSelector.innerHTML = '<option value="">-- Select Active Poll --</option>';
     
     pollsSnapshot.forEach((pollDoc) => {
       const pollId = pollDoc.id;
       const data = pollDoc.data();
+      
+      // Add to poll selector
       const option = document.createElement("option");
       option.value = pollId;
       option.textContent = `${pollId} (${data.title || 'Untitled'})`;
       selector.appendChild(option);
+      
+      // Add to active poll selector
+      const activeOption = document.createElement("option");
+      activeOption.value = pollId;
+      activeOption.textContent = `${pollId} (${data.title || 'Untitled'})`;
+      activeSelector.appendChild(activeOption);
     });
+    
+    // Load current active poll
+    await loadActivePoll();
     
     document.getElementById("pollStatus").innerText = "✅ Poll list loaded";
   } catch (err) {
     console.error("Load poll list error:", err);
     document.getElementById("pollStatus").innerText = "❌ Error loading polls";
+  }
+};
+
+// 🎯 LOAD ACTIVE POLL
+window.loadActivePoll = async function () {
+  try {
+    const activePollSnap = await getDoc(doc(db, "site", "activePoll"));
+    if (activePollSnap.exists()) {
+      const activePollId = activePollSnap.data().pollId;
+      document.getElementById("activePollSelector").value = activePollId || "";
+      document.getElementById("activePollStatus").innerText = `✅ Active poll: ${activePollId || 'None'}`;
+    } else {
+      document.getElementById("activePollSelector").value = "";
+      document.getElementById("activePollStatus").innerText = "ℹ️ No active poll set";
+    }
+  } catch (err) {
+    console.error("Load active poll error:", err);
+    document.getElementById("activePollStatus").innerText = "❌ Error loading active poll";
+  }
+};
+
+// 🎯 SET ACTIVE POLL
+window.setActivePoll = async function () {
+  const activePollId = document.getElementById("activePollSelector").value;
+  
+  if (!activePollId) {
+    alert("Please select a poll to set as active");
+    return;
+  }
+  
+  try {
+    await setDoc(doc(db, "site", "activePoll"), {
+      pollId: activePollId,
+      setAt: new Date().toISOString()
+    });
+    
+    document.getElementById("activePollStatus").innerText = `✅ Active poll set to: ${activePollId}`;
+    
+    // Notify main site to update
+    localStorage.setItem('activePollUpdate', JSON.stringify({
+      pollId: activePollId,
+      time: Date.now()
+    }));
+    
+  } catch (err) {
+    console.error("Set active poll error:", err);
+    document.getElementById("activePollStatus").innerText = "❌ Failed to set active poll";
   }
 };
 
