@@ -173,124 +173,68 @@
     if (widget) widget.innerText = `${count} ${count === 1 ? 'person' : 'people'} online`;
   }
 
-  async function initOnlinePresence() {
+  function initOnlinePresence() {
     try {
-      // Try to use existing Firebase if available (from main pages like index.html)
-      if (window.firebase && window.firebase.firestore && window.firebase.auth) {
-        const db = window.firebase.firestore();
-        const auth = window.firebase.auth();
-        
-        // Try to sign in anonymously if not already signed in
-        if (!auth.currentUser) {
-          try {
-            await auth.signInAnonymously();
-          } catch (authErr) {
-            console.warn('Anonymous auth failed:', authErr);
+      const presenceId = generatePresenceId();
+      const storageKey = 'presence_' + presenceId;
+      
+      const updatePresence = () => {
+        localStorage.setItem(storageKey, JSON.stringify({
+          id: presenceId,
+          page: location.pathname,
+          title: document.title,
+          timestamp: Date.now()
+        }));
+      };
+
+      const countOnlineUsers = () => {
+        const now = Date.now();
+        const maxAge = 90000; // 90 seconds
+        let count = 0;
+
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('presence_')) {
+            try {
+              const data = JSON.parse(localStorage.getItem(key));
+              if (data && data.timestamp && (now - data.timestamp) < maxAge) {
+                count++;
+              }
+            } catch (e) {
+              // ignore malformed data
+            }
           }
         }
 
-        const presenceId = generatePresenceId();
-        const presenceRef = db.collection('presence').doc(presenceId);
-        
-        const updatePresence = () => {
-          presenceRef.set({
-            page: location.pathname,
-            title: document.title,
-            lastSeen: window.firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: new Date().toISOString()
-          }, { merge: true }).catch(err => console.warn('Presence update error:', err));
-        };
+        return count;
+      };
 
-        // Initial update
-        updatePresence();
-        
-        // Update every 25 seconds
-        setInterval(updatePresence, 25000);
+      // Initial update
+      updatePresence();
+      
+      // Update every 25 seconds
+      setInterval(updatePresence, 25000);
 
-        // Listen for active users (last 90 seconds)
-        db.collection('presence')
-          .where('lastSeen', '>', new Date(Date.now() - 90000))
-          .onSnapshot(
-            snap => {
-              updateOnlineCountWidget(snap.size);
-              console.log('Online count updated:', snap.size);
-            },
-            err => console.warn('Presence listener error:', err)
-          );
-      } else {
-        // Fallback: try dynamic import
-        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-        const { getFirestore, doc, collection, setDoc, query, where, onSnapshot, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-        const { getAuth, signInAnonymously } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-        
-        const firebaseConfig = {
-          apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
-          authDomain: "snoopys-hub.firebaseapp.com",
-          projectId: "snoopys-hub",
-          storageBucket: "snoopys-hub.appspot.com",
-          messagingSenderId: "711107016273",
-          appId: "1:711107016273:web:c0680189aa61f6b9052a70"
-        };
+      // Count online users every 5 seconds
+      const updateCounter = () => {
+        const count = countOnlineUsers();
+        updateOnlineCountWidget(count);
+      };
+      
+      setInterval(updateCounter, 5000);
+      updateCounter(); // Initial count
 
-        let app;
-        try {
-          app = initializeApp(firebaseConfig);
-        } catch (e) {
-          // App already initialized
-          app = window.firebase && window.firebase.app ? window.firebase.app() : null;
+      // Also update on storage changes from other tabs
+      window.addEventListener('storage', (event) => {
+        if (event.key && event.key.startsWith('presence_')) {
+          updateCounter();
         }
+      });
 
-        if (!app) {
-          console.warn('Could not initialize Firebase');
-          return;
-        }
-
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        try {
-          await signInAnonymously(auth);
-        } catch (authErr) {
-          console.warn('Anonymous auth failed:', authErr);
-        }
-
-        const presenceId = generatePresenceId();
-        const presenceDocRef = doc(collection(db, 'presence'), presenceId);
-        
-        const updatePresence = async () => {
-          try {
-            await setDoc(presenceDocRef, {
-              page: location.pathname,
-              title: document.title,
-              lastSeen: serverTimestamp(),
-              updatedAt: new Date().toISOString()
-            }, { merge: true });
-          } catch (err) {
-            console.warn('Presence update error:', err);
-          }
-        };
-
-        // Initial update
-        await updatePresence();
-        
-        // Update every 25 seconds
-        setInterval(updatePresence, 25000);
-
-        // Listen for active users (last 90 seconds)
-        const q = query(
-          collection(db, 'presence'),
-          where('lastSeen', '>', new Date(Date.now() - 90000))
-        );
-        
-        onSnapshot(q, snap => {
-          updateOnlineCountWidget(snap.size);
-          console.log('Online count updated:', snap.size);
-        });
-      }
+      console.log('Online presence tracking initialized (localStorage-based)');
     } catch (err) {
       console.error('Online presence init failed:', err);
-      // Still show the widget even on error
-      updateOnlineCountWidget(0);
+      updateOnlineCountWidget(1); // At least count this page
     }
   }
 
