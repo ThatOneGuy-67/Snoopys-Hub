@@ -49,11 +49,11 @@
       };
     }
     return {
-      background: 'rgba(20,24,38,0.96)',
+      background: 'rgba(30,34,44,0.94)',
       color: '#fff',
-      border: '1px solid rgba(77,163,255,0.3)',
-      boxShadow: '0 12px 36px rgba(0,0,0,0.35)',
-      progress: 'linear-gradient(90deg, #4da3ff, #7dd3fc)'
+      border: '1px solid rgba(255,255,255,0.08)',
+      boxShadow: '0 18px 45px rgba(0,0,0,0.26)',
+      progress: 'linear-gradient(90deg, rgba(140,170,255,0.95), rgba(120,230,255,0.9))'
     };
   }
 
@@ -142,12 +142,12 @@
     widget.style.bottom = '20px';
     widget.style.left = '20px';
     widget.style.zIndex = '10001';
-    widget.style.background = 'rgba(20,24,38,0.92)';
+    widget.style.background = 'rgba(30,34,44,0.88)';
     widget.style.color = '#fff';
     widget.style.padding = '10px 14px';
     widget.style.borderRadius = '14px';
-    widget.style.border = '1px solid rgba(77,163,255,0.25)';
-    widget.style.boxShadow = '0 12px 36px rgba(0,0,0,0.25)';
+    widget.style.border = '1px solid rgba(255,255,255,0.08)';
+    widget.style.boxShadow = '0 18px 40px rgba(0,0,0,0.22)';
     widget.style.fontSize = '13px';
     widget.style.fontWeight = '600';
     widget.style.backdropFilter = 'blur(15px)';
@@ -186,7 +186,14 @@
     try {
       const firebaseApp = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
       const firebaseFirestore = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      const firebaseAuth = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
       const app = firebaseApp.initializeApp(firebaseConfig);
+      const auth = firebaseAuth.getAuth(app);
+      try {
+        await firebaseAuth.signInAnonymously(auth);
+      } catch (authErr) {
+        console.warn('Anonymous auth failed', authErr);
+      }
       const db = firebaseFirestore.getFirestore(app);
       const presenceId = generatePresenceId();
       const presenceDoc = firebaseFirestore.doc(firebaseFirestore.collection(db, 'presence'), presenceId);
