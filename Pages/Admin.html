@@ -307,9 +307,10 @@ window.loadPollList = async function () {
 // 🎯 LOAD ACTIVE POLL
 window.loadActivePoll = async function () {
   try {
-    const activePollSnap = await getDoc(doc(db, "site", "activePoll"));
-    if (activePollSnap.exists()) {
-      const activePollId = activePollSnap.data().pollId;
+    const annSnap = await getDoc(doc(db, "site", "announcement"));
+    if (annSnap.exists()) {
+      const data = annSnap.data();
+      const activePollId = data.activePollId;
       document.getElementById("activePollSelector").value = activePollId || "";
       document.getElementById("activePollStatus").innerText = `✅ Active poll: ${activePollId || 'None'}`;
     } else {
@@ -330,12 +331,22 @@ window.setActivePoll = async function () {
     alert("Please select a poll to set as active");
     return;
   }
+
+  // Check if user is authenticated
+  const user = auth.currentUser;
+  if (!user) {
+    alert("You must be logged in to set the active poll");
+    document.getElementById("activePollStatus").innerText = "❌ Not authenticated";
+    return;
+  }
   
   try {
-    await setDoc(doc(db, "site", "activePoll"), {
-      pollId: activePollId,
-      setAt: new Date().toISOString()
-    });
+    // Store active poll in the announcement document to avoid permissions issues
+    await setDoc(doc(db, "site", "announcement"), {
+      activePollId: activePollId,
+      activePollSetAt: new Date().toISOString(),
+      activePollSetBy: user.email
+    }, { merge: true });
     
     document.getElementById("activePollStatus").innerText = `✅ Active poll set to: ${activePollId}`;
     
@@ -347,7 +358,7 @@ window.setActivePoll = async function () {
     
   } catch (err) {
     console.error("Set active poll error:", err);
-    document.getElementById("activePollStatus").innerText = "❌ Failed to set active poll";
+    document.getElementById("activePollStatus").innerText = `❌ Failed to set active poll: ${err.message}`;
   }
 };
 

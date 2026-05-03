@@ -147,10 +147,11 @@
             // =====================
             async function initPoll() {
             try {
-                // First, get the active poll ID
-                const activePollSnap = await getDoc(doc(db, "site", "activePoll"));
-                if (activePollSnap.exists()) {
-                    activePollId = activePollSnap.data().pollId || "main";
+                // First, get the active poll ID from announcement document
+                const annSnap = await getDoc(doc(db, "site", "announcement"));
+                if (annSnap.exists()) {
+                    const annData = annSnap.data();
+                    activePollId = annData.activePollId || "main";
                 }
                 
                 // Set the poll reference to the active poll
