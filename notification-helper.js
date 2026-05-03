@@ -123,7 +123,7 @@
   function generatePresenceId() {
     let id = localStorage.getItem('presenceId');
     if (!id) {
-      id = 'presence_' + Math.random().toString(36).slice(2) + '_' + Date.now().toString(36);
+      id = Math.random().toString(36).slice(2) + '_' + Date.now().toString(36);
       localStorage.setItem('presenceId', id);
     }
     return id;
@@ -212,6 +212,7 @@
         const now = Date.now();
         const maxAge = 90000; // 90 seconds
         let count = 0;
+        const foundIds = [];
 
         try {
           // Safely iterate localStorage
@@ -227,11 +228,16 @@
                 const data = JSON.parse(localStorage.getItem(key));
                 if (data && data.timestamp && (now - data.timestamp) < maxAge) {
                   count++;
+                  foundIds.push(key);
                 }
               } catch (e) {
                 // ignore malformed data
               }
             }
+          }
+          
+          if (foundIds.length > 0) {
+            console.log('Online presence count:', count, 'IDs:', foundIds.slice(0, 3));
           }
         } catch (e) {
           console.warn('Error counting online users:', e);
@@ -254,7 +260,9 @@
       };
       
       setInterval(updateCounter, 5000);
-      updateCounter(); // Initial count
+      
+      // Initial count after small delay to ensure other tabs' data is present
+      setTimeout(updateCounter, 100);
 
       // Also update on storage changes from other tabs
       const storageListener = (event) => {
