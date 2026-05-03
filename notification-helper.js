@@ -121,10 +121,26 @@
   }
 
   function generatePresenceId() {
-    let id = localStorage.getItem('presenceId');
+    const key = 'presenceId';
+    let id = null;
+
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        id = sessionStorage.getItem(key);
+        if (!id) {
+          id = Math.random().toString(36).slice(2) + '_' + Date.now().toString(36);
+          sessionStorage.setItem(key, id);
+        }
+        return id;
+      }
+    } catch (e) {
+      console.warn('sessionStorage unavailable, falling back to localStorage for presence ID');
+    }
+
+    id = localStorage.getItem(key);
     if (!id) {
       id = Math.random().toString(36).slice(2) + '_' + Date.now().toString(36);
-      localStorage.setItem('presenceId', id);
+      localStorage.setItem(key, id);
     }
     return id;
   }
