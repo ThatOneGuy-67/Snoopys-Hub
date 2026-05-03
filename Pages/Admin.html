@@ -195,7 +195,9 @@ import {
   setDoc,
   updateDoc,
   getDoc,
-  deleteDoc
+  deleteDoc,
+  collection,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -257,27 +259,20 @@ onAuthStateChanged(auth, user => {
 window.loadPollList = async function () {
   try {
     const selector = document.getElementById("pollSelector");
-    const pollsRef = doc(db, "polls");
     
-    // For this demo, we'll query known polls
-    // In production, you'd query a collection
-    const knownPollIds = ["main", "poll2", "poll3", "poll4", "poll5"];
+    // Query all documents in the polls collection
+    const pollsSnapshot = await getDocs(collection(db, "polls"));
     
     selector.innerHTML = '<option value="">-- New Poll --</option>';
     
-    for (const pollId of knownPollIds) {
-      try {
-        const pollSnap = await getDoc(doc(db, "polls", pollId));
-        if (pollSnap.exists()) {
-          const option = document.createElement("option");
-          option.value = pollId;
-          option.textContent = `${pollId} (${pollSnap.data().title || 'Untitled'})`;
-          selector.appendChild(option);
-        }
-      } catch (e) {
-        // Skip if poll doesn't exist
-      }
-    }
+    pollsSnapshot.forEach((pollDoc) => {
+      const pollId = pollDoc.id;
+      const data = pollDoc.data();
+      const option = document.createElement("option");
+      option.value = pollId;
+      option.textContent = `${pollId} (${data.title || 'Untitled'})`;
+      selector.appendChild(option);
+    });
     
     document.getElementById("pollStatus").innerText = "✅ Poll list loaded";
   } catch (err) {
