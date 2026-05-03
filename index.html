@@ -838,6 +838,39 @@
         { id:"locked", icon:"🔒", name:"Unknown", req:12, secret:true }
         ];
 
+        const messages = {
+        badge: [
+          "🏆 Achievement unlocked… you’re kinda cracked",
+          "🔥 New badge earned. Keep going.",
+          "👀 You just found something interesting...",
+          "💀 That was faster than expected...",
+          "✨ Progress saved. You’re leveling up"
+        ],
+        poll: [
+          "🗳️ New poll dropped… don’t mess it up",
+          "👀 Go vote. Yes, you.",
+          "📊 Your opinion is needed (kinda)",
+          "🤨 Time to choose wisely..."
+        ],
+        announce: [
+          "🚀 New update just dropped",
+          "🔥 Something new is live",
+          "⚡ Fresh content just landed",
+          "🧪 New feature unlocked"
+        ],
+        secret: [
+          "👻 ??? you weren’t supposed to find this...",
+          "🕵️ You found a hidden one...",
+          "🔐 This wasn’t meant for everyone",
+          "👁️ We see you..."
+        ]
+        };
+
+        function randomMessage(type) {
+        const list = messages[type] || [];
+        return list.length ? list[Math.floor(Math.random() * list.length)] : "";
+        }
+
         /* ===================== TRACK VISITS ===================== */
         function trackVisit(page) {
         let v = parseInt(localStorage.getItem("visit_" + page) || "0") + 1;
