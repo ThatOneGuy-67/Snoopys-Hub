@@ -30,31 +30,60 @@
 
   function getThemeStyles() {
     const theme = localStorage.getItem('siteTheme') || 'dark';
-    if (theme === 'light') {
-      return {
+    
+    const themes = {
+      light: {
         background: 'rgba(245,246,250,0.98)',
         color: '#111',
         border: '1px solid rgba(77,163,255,0.3)',
         boxShadow: '0 12px 36px rgba(0,0,0,0.12)',
         progress: 'linear-gradient(90deg, #4da3ff, #2563eb)'
-      };
-    }
-    if (theme === 'neon') {
-      return {
+      },
+      neon: {
         background: 'rgba(28,8,48,0.96)',
         color: '#fff',
         border: '1px solid rgba(255,0,255,0.45)',
         boxShadow: '0 0 32px rgba(255,0,255,0.25), inset 0 0 16px rgba(255,0,255,0.08)',
         progress: 'linear-gradient(90deg, #ff00ff, #00ffff)'
-      };
-    }
-    return {
-      background: 'rgba(30,34,44,0.94)',
-      color: '#fff',
-      border: '1px solid rgba(255,255,255,0.08)',
-      boxShadow: '0 18px 45px rgba(0,0,0,0.26)',
-      progress: 'linear-gradient(90deg, rgba(140,170,255,0.95), rgba(120,230,255,0.9))'
+      },
+      spring: {
+        background: 'rgba(233, 180, 155, 0.85)',
+        color: '#0a0a0a',
+        border: '1px solid rgba(124, 209, 133, 0.4)',
+        boxShadow: '0 12px 36px rgba(124, 209, 133, 0.15)',
+        progress: 'linear-gradient(90deg, #7cd185, #f1af9b)'
+      },
+      summer: {
+        background: 'rgba(255, 238, 174, 0.92)',
+        color: '#3b2b0d',
+        border: '1px solid rgba(249, 168, 37, 0.4)',
+        boxShadow: '0 12px 36px rgba(249, 168, 37, 0.15)',
+        progress: 'linear-gradient(90deg, #f9a825, #ffd900)'
+      },
+      autumn: {
+        background: 'rgba(204, 85, 0, 0.85)',
+        color: '#fff8f3',
+        border: '1px solid rgba(255, 140, 0, 0.4)',
+        boxShadow: '0 12px 36px rgba(255, 140, 0, 0.2)',
+        progress: 'linear-gradient(90deg, #ff8c00, #e61c3c)'
+      },
+      winter: {
+        background: 'rgba(30,34,44,0.94)',
+        color: '#fff',
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: '0 18px 45px rgba(0,0,0,0.26)',
+        progress: 'linear-gradient(90deg, rgba(140,170,255,0.95), rgba(120,230,255,0.9))'
+      },
+      dark: {
+        background: 'rgba(30,34,44,0.94)',
+        color: '#fff',
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: '0 18px 45px rgba(0,0,0,0.26)',
+        progress: 'linear-gradient(90deg, rgba(140,170,255,0.95), rgba(120,230,255,0.9))'
+      }
     };
+    
+    return themes[theme] || themes['dark'];
   }
 
   function showSiteNotification(title, body, duration = 5000) {

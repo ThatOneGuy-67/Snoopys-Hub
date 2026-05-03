@@ -1,15 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <script>
+    // Apply theme BEFORE page renders
+    (function() {
+      const theme = localStorage.getItem('siteTheme') || 'dark';
+      if (theme === 'light') document.documentElement.classList.add('theme-light');
+      if (theme === 'neon') document.documentElement.classList.add('theme-neon');
+      if (theme === 'spring') document.documentElement.classList.add('theme-spring');
+      if (theme === 'summer') document.documentElement.classList.add('theme-summer');
+      if (theme === 'autumn') document.documentElement.classList.add('theme-autumn');
+      if (theme === 'winter') document.documentElement.classList.add('theme-winter');
+    })();
+  </script>
   <script src="../notification-helper.js"></script>
   <title>Admin Panel</title>
 
   <style>
     body {
       font-family: Arial;
-      background: #1a1a1a;
       color: white;
       text-align: center;
+        background:
+            linear-gradient(rgba(50,50,50,0.8), rgba(50,50,50,0.8)),
+            url("https://i.pinimg.com/originals/11/cf/ee/11cfeef9eaa56c71a6eeb9933f933492.gif");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
     }
 
     .hidden { display: none; }

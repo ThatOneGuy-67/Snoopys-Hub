@@ -1,7 +1,17 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
+<head>  <script>
+    // Apply theme BEFORE page renders
+    (function() {
+      const theme = localStorage.getItem('siteTheme') || 'dark';
+      if (theme === 'light') document.documentElement.classList.add('theme-light');
+      if (theme === 'neon') document.documentElement.classList.add('theme-neon');
+      if (theme === 'spring') document.documentElement.classList.add('theme-spring');
+      if (theme === 'summer') document.documentElement.classList.add('theme-summer');
+      if (theme === 'autumn') document.documentElement.classList.add('theme-autumn');
+      if (theme === 'winter') document.documentElement.classList.add('theme-winter');
+    })();
+  </script>  <meta charset="utf-8">
   <title>Snoopy’s Spotify</title>
 </head>
 <body style="margin:0">
