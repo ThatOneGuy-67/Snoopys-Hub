@@ -175,16 +175,37 @@
 
   function initOnlinePresence() {
     try {
+      // Check if localStorage is available
+      let storageAvailable = false;
+      try {
+        const testKey = '__storage_test__';
+        localStorage.setItem(testKey, 'test');
+        localStorage.removeItem(testKey);
+        storageAvailable = true;
+      } catch (e) {
+        console.warn('localStorage not available in this browser/context:', e);
+      }
+
+      if (!storageAvailable) {
+        console.warn('Online presence disabled: localStorage not accessible');
+        updateOnlineCountWidget(1); // At least show this user
+        return;
+      }
+
       const presenceId = generatePresenceId();
       const storageKey = 'presence_' + presenceId;
       
       const updatePresence = () => {
-        localStorage.setItem(storageKey, JSON.stringify({
-          id: presenceId,
-          page: location.pathname,
-          title: document.title,
-          timestamp: Date.now()
-        }));
+        try {
+          localStorage.setItem(storageKey, JSON.stringify({
+            id: presenceId,
+            page: location.pathname,
+            title: document.title,
+            timestamp: Date.now()
+          }));
+        } catch (e) {
+          console.warn('Failed to update presence:', e);
+        }
       };
 
       const countOnlineUsers = () => {
@@ -192,21 +213,32 @@
         const maxAge = 90000; // 90 seconds
         let count = 0;
 
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith('presence_')) {
-            try {
-              const data = JSON.parse(localStorage.getItem(key));
-              if (data && data.timestamp && (now - data.timestamp) < maxAge) {
-                count++;
+        try {
+          // Safely iterate localStorage
+          const keys = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key) keys.push(key);
+          }
+
+          for (const key of keys) {
+            if (key && key.startsWith('presence_')) {
+              try {
+                const data = JSON.parse(localStorage.getItem(key));
+                if (data && data.timestamp && (now - data.timestamp) < maxAge) {
+                  count++;
+                }
+              } catch (e) {
+                // ignore malformed data
               }
-            } catch (e) {
-              // ignore malformed data
             }
           }
+        } catch (e) {
+          console.warn('Error counting online users:', e);
+          return 1; // Fallback: at least this user
         }
 
-        return count;
+        return Math.max(count, 1); // Always at least 1 (current user)
       };
 
       // Initial update
@@ -225,11 +257,36 @@
       updateCounter(); // Initial count
 
       // Also update on storage changes from other tabs
-      window.addEventListener('storage', (event) => {
+      const storageListener = (event) => {
         if (event.key && event.key.startsWith('presence_')) {
           updateCounter();
         }
-      });
+      };
+      
+      window.addEventListener('storage', storageListener);
+
+      // Fallback: Use BroadcastChannel API if available (better for cross-tab communication)
+      if (typeof BroadcastChannel !== 'undefined') {
+        try {
+          const channel = new BroadcastChannel('snhoopys-hub-presence');
+          channel.onmessage = (event) => {
+            if (event.data && event.data.type === 'presence-update') {
+              updateCounter();
+            }
+          };
+          
+          // Send presence updates via BroadcastChannel
+          const originalUpdatePresence = updatePresence;
+          setInterval(() => {
+            originalUpdatePresence();
+            channel.postMessage({ type: 'presence-update', id: presenceId });
+          }, 25000);
+          
+          console.log('BroadcastChannel enabled for presence sync');
+        } catch (e) {
+          console.warn('BroadcastChannel failed, using localStorage only:', e);
+        }
+      }
 
       console.log('Online presence tracking initialized (localStorage-based)');
     } catch (err) {
