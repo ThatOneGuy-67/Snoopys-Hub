@@ -121,10 +121,15 @@
   }
 
   function generatePresenceId() {
-    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-      return crypto.randomUUID();
+    const key = 'presenceId';
+    let id = localStorage.getItem(key);
+    if (!id) {
+      id = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+        ? crypto.randomUUID()
+        : Math.random().toString(36).slice(2) + '_' + Date.now().toString(36);
+      localStorage.setItem(key, id);
     }
-    return Math.random().toString(36).slice(2) + '_' + Date.now().toString(36);
+    return id;
   }
 
   let pendingOnlineCount = null;
@@ -276,10 +281,6 @@
       // Initial update
       updatePresence();
       
-      // Cleanup if this tab unloads
-      window.addEventListener('beforeunload', removePresence);
-      window.addEventListener('pagehide', removePresence);
-
       // Update every 25 seconds
       setInterval(updatePresence, 25000);
 
