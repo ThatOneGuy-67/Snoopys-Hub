@@ -142,17 +142,17 @@
     widget.style.bottom = '20px';
     widget.style.left = '20px';
     widget.style.zIndex = '10001';
-    widget.style.background = 'rgba(30,34,44,0.88)';
-    widget.style.color = '#fff';
+    widget.style.background = 'rgba(255,255,255,0.08)';
+    widget.style.color = '#e8e8e8';
     widget.style.padding = '10px 14px';
     widget.style.borderRadius = '14px';
-    widget.style.border = '1px solid rgba(255,255,255,0.08)';
-    widget.style.boxShadow = '0 18px 40px rgba(0,0,0,0.22)';
+    widget.style.border = '1px solid rgba(255,255,255,0.15)';
+    widget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.25)';
     widget.style.fontSize = '13px';
     widget.style.fontWeight = '600';
     widget.style.backdropFilter = 'blur(15px)';
     widget.style.pointerEvents = 'none';
-    widget.style.opacity = '0.95';
+    widget.style.opacity = '0.9';
     widget.innerText = 'Online: …';
 
     document.body.appendChild(widget);
@@ -174,53 +174,123 @@
   }
 
   async function initOnlinePresence() {
-    const firebaseConfig = {
-      apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
-      authDomain: "snoopys-hub.firebaseapp.com",
-      projectId: "snoopys-hub",
-      storageBucket: "snoopys-hub.appspot.com",
-      messagingSenderId: "711107016273",
-      appId: "1:711107016273:web:c0680189aa61f6b9052a70"
-    };
-
     try {
-      const firebaseApp = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-      const firebaseFirestore = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-      const firebaseAuth = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-      const app = firebaseApp.initializeApp(firebaseConfig);
-      const auth = firebaseAuth.getAuth(app);
-      try {
-        await firebaseAuth.signInAnonymously(auth);
-      } catch (authErr) {
-        console.warn('Anonymous auth failed', authErr);
+      // Try to use existing Firebase if available (from main pages like index.html)
+      if (window.firebase && window.firebase.firestore && window.firebase.auth) {
+        const db = window.firebase.firestore();
+        const auth = window.firebase.auth();
+        
+        // Try to sign in anonymously if not already signed in
+        if (!auth.currentUser) {
+          try {
+            await auth.signInAnonymously();
+          } catch (authErr) {
+            console.warn('Anonymous auth failed:', authErr);
+          }
+        }
+
+        const presenceId = generatePresenceId();
+        const presenceRef = db.collection('presence').doc(presenceId);
+        
+        const updatePresence = () => {
+          presenceRef.set({
+            page: location.pathname,
+            title: document.title,
+            lastSeen: window.firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: new Date().toISOString()
+          }, { merge: true }).catch(err => console.warn('Presence update error:', err));
+        };
+
+        // Initial update
+        updatePresence();
+        
+        // Update every 25 seconds
+        setInterval(updatePresence, 25000);
+
+        // Listen for active users (last 90 seconds)
+        db.collection('presence')
+          .where('lastSeen', '>', new Date(Date.now() - 90000))
+          .onSnapshot(
+            snap => {
+              updateOnlineCountWidget(snap.size);
+              console.log('Online count updated:', snap.size);
+            },
+            err => console.warn('Presence listener error:', err)
+          );
+      } else {
+        // Fallback: try dynamic import
+        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+        const { getFirestore, doc, collection, setDoc, query, where, onSnapshot, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        const { getAuth, signInAnonymously } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+        
+        const firebaseConfig = {
+          apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
+          authDomain: "snoopys-hub.firebaseapp.com",
+          projectId: "snoopys-hub",
+          storageBucket: "snoopys-hub.appspot.com",
+          messagingSenderId: "711107016273",
+          appId: "1:711107016273:web:c0680189aa61f6b9052a70"
+        };
+
+        let app;
+        try {
+          app = initializeApp(firebaseConfig);
+        } catch (e) {
+          // App already initialized
+          app = window.firebase && window.firebase.app ? window.firebase.app() : null;
+        }
+
+        if (!app) {
+          console.warn('Could not initialize Firebase');
+          return;
+        }
+
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        try {
+          await signInAnonymously(auth);
+        } catch (authErr) {
+          console.warn('Anonymous auth failed:', authErr);
+        }
+
+        const presenceId = generatePresenceId();
+        const presenceDocRef = doc(collection(db, 'presence'), presenceId);
+        
+        const updatePresence = async () => {
+          try {
+            await setDoc(presenceDocRef, {
+              page: location.pathname,
+              title: document.title,
+              lastSeen: serverTimestamp(),
+              updatedAt: new Date().toISOString()
+            }, { merge: true });
+          } catch (err) {
+            console.warn('Presence update error:', err);
+          }
+        };
+
+        // Initial update
+        await updatePresence();
+        
+        // Update every 25 seconds
+        setInterval(updatePresence, 25000);
+
+        // Listen for active users (last 90 seconds)
+        const q = query(
+          collection(db, 'presence'),
+          where('lastSeen', '>', new Date(Date.now() - 90000))
+        );
+        
+        onSnapshot(q, snap => {
+          updateOnlineCountWidget(snap.size);
+          console.log('Online count updated:', snap.size);
+        });
       }
-      const db = firebaseFirestore.getFirestore(app);
-      const presenceId = generatePresenceId();
-      const presenceDoc = firebaseFirestore.doc(firebaseFirestore.collection(db, 'presence'), presenceId);
-      const updatePresence = async () => {
-        await firebaseFirestore.setDoc(presenceDoc, {
-          page: location.pathname,
-          title: document.title,
-          lastSeen: firebaseFirestore.serverTimestamp(),
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
-      };
-
-      await updatePresence();
-      setInterval(() => updatePresence().catch(err => console.warn('Presence update failed', err)), 25000);
-
-      const activeWindow = firebaseFirestore.query(
-        firebaseFirestore.collection(db, 'presence'),
-        firebaseFirestore.where('lastSeen', '>', firebaseFirestore.Timestamp.fromDate(new Date(Date.now() - 90000)))
-      );
-
-      firebaseFirestore.onSnapshot(activeWindow, snap => {
-        updateOnlineCountWidget(snap.size);
-      });
     } catch (err) {
-      console.warn('Online presence init failed', err);
-      const widget = createOnlineCountWidget();
-      widget.innerText = 'Online: unavailable';
+      console.error('Online presence init failed:', err);
+      // Still show the widget even on error
+      updateOnlineCountWidget(0);
     }
   }
 
