@@ -1164,6 +1164,36 @@
             function showBanner(title, text) {
               const banner = document.createElement("div");
             
+              const theme = localStorage.getItem("siteTheme") || "dark";
+            
+              let bg = "#4da3ff";
+              let textColor = "white";
+            
+              if (theme === "light") {
+                bg = "rgba(240,245,255,0.98)";
+                textColor = "#1a1a1a";
+              } 
+              else if (theme === "neon") {
+                bg = "rgba(30,10,50,0.98)";
+                textColor = "#fff";
+              } 
+              else if (theme === "spring") {
+                bg = "rgba(233,180,155,0.9)";
+                textColor = "#000";
+              } 
+              else if (theme === "summer") {
+                bg = "rgba(255, 230, 168, 0.95)";
+                textColor = "#3b2b0d";
+              } 
+              else if (theme === "autumn") {
+                bg = "rgba(184, 100, 6, 0.95)";
+                textColor = "#fff";
+              } 
+              else if (theme === "winter") {
+                bg = "rgba(18,35,60,0.95)";
+                textColor = "#eef7ff";
+              }
+            
               banner.innerHTML = `
                 <strong>${title}</strong><br>${text}
                 <span onclick="this.parentElement.remove()" style="margin-left:10px;cursor:pointer;">✕</span>
@@ -1173,11 +1203,11 @@
               banner.style.top = "0";
               banner.style.left = "0";
               banner.style.width = "100%";
-              banner.style.background = "#4da3ff";
-              banner.style.color = "white";
               banner.style.padding = "12px";
               banner.style.textAlign = "center";
               banner.style.zIndex = "10002";
+              banner.style.background = bg;
+              banner.style.color = textColor;
             
               document.body.appendChild(banner);
             }
