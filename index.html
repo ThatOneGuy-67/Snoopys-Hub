@@ -1132,6 +1132,57 @@
         }
         </style>
 
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+            import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+            
+            const firebaseConfig = {
+              apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
+              authDomain: "snoopys-hub.firebaseapp.com",
+              projectId: "snoopys-hub",
+            };
+            
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            
+            async function loadAnnouncement() {
+              const snap = await getDoc(doc(db, "site", "announcement"));
+            
+              if (!snap.exists()) return;
+            
+              const data = snap.data();
+            
+              if (!data.title || !data.text) return;
+            
+              showBanner(data.title, data.text);
+            }
+            
+            loadAnnouncement();
+        </script>
+
+        <script>
+            function showBanner(title, text) {
+              const banner = document.createElement("div");
+            
+              banner.innerHTML = `
+                <strong>${title}</strong><br>${text}
+                <span onclick="this.parentElement.remove()" style="margin-left:10px;cursor:pointer;">✕</span>
+              `;
+            
+              banner.style.position = "fixed";
+              banner.style.top = "0";
+              banner.style.left = "0";
+              banner.style.width = "100%";
+              banner.style.background = "#4da3ff";
+              banner.style.color = "white";
+              banner.style.padding = "12px";
+              banner.style.textAlign = "center";
+              banner.style.zIndex = "10002";
+            
+              document.body.appendChild(banner);
+            }
+        </script>
+        
         <script>
         /* DATE & TIME */
         function updateTime() {
