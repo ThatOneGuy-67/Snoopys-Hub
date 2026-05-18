@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
   <!-- Theme Loader -->
@@ -18,7 +19,7 @@
 
   <script src="../notification-helper.js"></script>
 
-  <base href="https://cdn.jsdelivr.net/gh/genizy/soundboard@main/">
+  <base href="https://cdn.jsdelivr.net/gh/ThatOneGuy-67/soundboard@main/">
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,365 +31,442 @@
 
   <!-- Icons -->
   <link rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<style>
+  <style>
 
-/* THEMES */
+    *{
+      box-sizing:border-box;
+    }
 
-.theme-light body{
-    background:#f3f3f3;
-    color:#111;
-}
+    /* THEMES */
 
-.theme-neon body{
-    background:#050510;
-    color:#00ffee;
-}
+    .theme-light body{
+      background:#f3f3f3;
+      color:#111;
+    }
 
-.theme-spring body{
-    background:linear-gradient(#dfffe0,#b7ffd3);
-}
+    .theme-neon body{
+      background:#050510;
+      color:#00ffee;
+    }
 
-.theme-summer body{
-    background:linear-gradient(#4db8ff,#001d3d);
-}
+    .theme-spring body{
+      background:linear-gradient(#dfffe0,#b7ffd3);
+    }
 
-.theme-autumn body{
-    background:linear-gradient(#3a1f0f,#8f4e1d);
-}
+    .theme-summer body{
+      background:linear-gradient(#4db8ff,#001d3d);
+    }
 
-.theme-winter body{
-    background:linear-gradient(#0f172a,#1e3a5f);
-}
+    .theme-autumn body{
+      background:linear-gradient(#3a1f0f,#8f4e1d);
+    }
 
-/* BODY */
+    .theme-winter body{
+      background:linear-gradient(#0f172a,#1e3a5f);
+    }
 
-body{
-    margin:0;
-    padding:2rem;
-    overflow-x:hidden;
-    font-family:Arial, sans-serif;
-    background:#111;
-    color:white;
-}
+    /* BODY */
 
-/* START PAGE */
+    body{
+      margin:0;
+      padding:2rem;
+      overflow-x:hidden;
+      font-family:Arial, sans-serif;
+      background:#111;
+      color:white;
+    }
 
-#startpage{
-    position:fixed;
-    inset:0;
-    background:rgba(20,20,20,.85);
-    backdrop-filter:blur(10px);
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    z-index:10000;
-    text-align:center;
-}
+    /* START PAGE */
 
-#startpage h1{
-    font-size:3rem;
-    margin-bottom:2rem;
-    color:#fff;
-    text-shadow:0 0 15px black;
-}
+    #startpage{
+      position:fixed;
+      inset:0;
+      background:rgba(20,20,20,.85);
+      backdrop-filter:blur(10px);
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      z-index:10000;
+      text-align:center;
+      transition:opacity .25s;
+    }
 
-#startButton{
-    padding:1rem 2rem;
-    font-size:1.3rem;
-    border:none;
-    border-radius:14px;
-    cursor:pointer;
-    background:#2d2d2d;
-    color:white;
-    transition:.25s;
-    box-shadow:0 0 15px rgba(0,0,0,.5);
-}
+    #startpage h1{
+      font-size:3rem;
+      margin-bottom:2rem;
+      color:#fff;
+      text-shadow:0 0 15px black;
+    }
 
-#startButton:hover{
-    transform:scale(1.05);
-    background:#444;
-}
+    #startButton{
+      padding:1rem 2rem;
+      font-size:1.3rem;
+      border:none;
+      border-radius:14px;
+      cursor:pointer;
+      background:#2d2d2d;
+      color:white;
+      transition:.25s;
+      box-shadow:0 0 15px rgba(0,0,0,.5);
+    }
 
-/* MAIN CONTENT */
+    #startButton:hover{
+      transform:scale(1.05);
+      background:#444;
+    }
 
-#mainContent{
-    display:none;
-}
+    /* MAIN CONTENT */
 
-#header{
-    text-align:center;
-    padding-top:80px;
-    margin-bottom:40px;
-}
+    #mainContent{
+      display:none;
+    }
 
-#header h1{
-    font-size:3rem;
-    color:#d6d6d6;
-    text-shadow:0 0 12px black;
-}
+    #header{
+      text-align:center;
+      padding-top:80px;
+      margin-bottom:40px;
+    }
 
-/* CONTROLS */
+    #header h1{
+      font-size:3rem;
+      color:#d6d6d6;
+      text-shadow:0 0 12px black;
+    }
 
-#controls{
-    position:fixed;
-    top:15px;
-    left:15px;
-    right:15px;
-    display:flex;
-    justify-content:center;
-    flex-wrap:wrap;
-    gap:10px;
-    z-index:999;
-}
+    /* CONTROLS */
 
-.control-button{
-    padding:.7rem 1rem;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    font-weight:bold;
-    transition:.2s;
-}
+    #controls{
+      position:fixed;
+      top:15px;
+      left:15px;
+      right:15px;
+      display:flex;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:10px;
+      z-index:999;
+      padding:0 10px;
+    }
 
-.control-button:hover{
-    transform:translateY(-2px);
-}
+    .control-button{
+      padding:.7rem 1rem;
+      border:none;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:bold;
+      transition:.2s;
+    }
 
-.favorites-toggle{
-    background:#ffe600;
-    color:#222;
-}
+    .control-button:hover{
+      transform:translateY(-2px);
+    }
 
-.overlap-toggle{
-    background:#444;
-    color:white;
-}
+    .favorites-toggle{
+      background:#ffe600;
+      color:#222;
+    }
 
-.stop-button{
-    background:#a10000;
-    color:white;
-}
+    .overlap-toggle{
+      background:#444;
+      color:white;
+    }
 
-#searchInput{
-    padding:.7rem 1rem;
-    border-radius:10px;
-    border:none;
-    min-width:220px;
-}
+    .stop-button{
+      background:#a10000;
+      color:white;
+    }
 
-/* SOUNDBOARD */
+    #searchInput{
+      padding:.7rem 1rem;
+      border-radius:10px;
+      border:none;
+      min-width:220px;
+      max-width:300px;
+      width:100%;
+    }
 
-#soundboard{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:2rem;
-    margin-top:120px;
-    padding-bottom:120px;
-}
+    /* SOUNDBOARD */
 
-.sound-wrapper{
-    width:120px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    transition:.15s;
-}
+    #soundboard{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:2rem;
+      margin-top:120px;
+      padding-bottom:120px;
+    }
 
-.sound-wrapper:hover{
-    transform:scale(1.05);
-    filter:brightness(1.15);
-}
+    .sound-wrapper{
+      width:120px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      transition:.15s;
+    }
 
-.sound-button-img{
-    all:unset;
-    width:100px;
-    height:100px;
-    cursor:pointer;
-}
+    .sound-wrapper:hover{
+      transform:scale(1.05);
+      filter:brightness(1.15);
+    }
 
-.sound-image{
-    width:100%;
-    height:100%;
-    border-radius:50%;
-    background-color:var(--btn-color);
-    background-image:url('https://cdn.jsdelivr.net/gh/genizy/soundboard@155ea6666132bde6f7f14c413431e0fd7eaeaba9/button.png');
-    background-size:cover;
-    background-position:center;
-    background-blend-mode:multiply;
-    box-shadow:0 0 10px var(--btn-color);
-    transition:.1s;
-}
+    .sound-button-img{
+      all:unset;
+      width:100px;
+      height:100px;
+      cursor:pointer;
+    }
 
-.sound-image.pressed{
-    transform:scale(.95);
-    background-image:url('https://cdn.jsdelivr.net/gh/genizy/soundboard@155ea6666132bde6f7f14c413431e0fd7eaeaba9/button_pressed.png');
-}
+    .sound-image{
+      width:100%;
+      height:100%;
+      border-radius:50%;
+      background-color:var(--btn-color);
+      background-image:url('https://cdn.jsdelivr.net/gh/genizy/soundboard@155ea6666132bde6f7f14c413431e0fd7eaeaba9/button.png');
+      background-size:cover;
+      background-position:center;
+      background-blend-mode:multiply;
+      box-shadow:0 0 10px var(--btn-color);
+      transition:.1s;
+    }
 
-.sound-label{
-    margin-top:10px;
-    text-align:center;
-    font-size:.9rem;
-    font-weight:bold;
-    color:#f1f1f1;
-    word-break:break-word;
-}
+    .sound-image.pressed{
+      transform:scale(.95);
+      background-image:url('https://cdn.jsdelivr.net/gh/genizy/soundboard@155ea6666132bde6f7f14c413431e0fd7eaeaba9/button_pressed.png');
+    }
 
-/* RIGHT CLICK */
+    .sound-label{
+      margin-top:10px;
+      text-align:center;
+      font-size:.9rem;
+      font-weight:bold;
+      color:#f1f1f1;
+      word-break:break-word;
+    }
 
-.right-click-panel{
-    background:white;
-    border:1px solid #ccc;
-    padding:8px;
-    border-radius:6px;
-    z-index:1000;
-    color:black;
-}
+    /* RIGHT CLICK */
 
-/* FOOTER */
+    .right-click-panel{
+      background:white;
+      border:1px solid #ccc;
+      padding:8px;
+      border-radius:6px;
+      z-index:1000;
+      color:black;
+    }
 
-#footer{
-    text-align:center;
-    padding:20px;
-    color:#666;
-    font-size:.8rem;
-}
+    /* FOOTER */
 
-/* FLOATING NAV */
+    #footer{
+      text-align:center;
+      padding:20px;
+      color:#666;
+      font-size:.8rem;
+    }
 
-.bnav{
-    position:fixed;
-    bottom:18px;
-    left:50%;
-    transform:translateX(-50%);
-    display:flex;
-    gap:16px;
-    padding:10px 16px;
-    background:rgba(18,18,18,.65);
-    backdrop-filter:blur(10px);
-    border-radius:18px;
-    z-index:9999;
-}
+    /* FLOATING NAV */
 
-.bnav a{
-    color:#e6e6e6;
-    font-size:16px;
-    position:relative;
-    transition:.2s;
-}
+    .bnav{
+      position:fixed;
+      bottom:18px;
+      left:50%;
+      transform:translateX(-50%);
+      display:flex;
+      gap:16px;
+      padding:10px 16px;
+      background:rgba(18,18,18,.65);
+      backdrop-filter:blur(10px);
+      border-radius:18px;
+      z-index:9999;
+    }
 
-.bnav a:hover{
-    transform:scale(1.2);
-    color:white;
-}
+    .bnav a{
+      color:#e6e6e6;
+      font-size:16px;
+      position:relative;
+      transition:.2s;
+      text-decoration:none;
+    }
 
-.bnav a::after{
-    content:attr(data);
-    position:absolute;
-    bottom:140%;
-    left:50%;
-    transform:translateX(-50%);
-    background:#111;
-    color:white;
-    padding:3px 6px;
-    font-size:11px;
-    border-radius:6px;
-    opacity:0;
-    transition:.2s;
-    white-space:nowrap;
-}
+    .bnav a:hover{
+      transform:scale(1.2);
+      color:white;
+    }
 
-.bnav a:hover::after{
-    opacity:1;
-}
+    .bnav a::after{
+      content:attr(data);
+      position:absolute;
+      bottom:140%;
+      left:50%;
+      transform:translateX(-50%);
+      background:#111;
+      color:white;
+      padding:3px 6px;
+      font-size:11px;
+      border-radius:6px;
+      opacity:0;
+      transition:.2s;
+      white-space:nowrap;
+      pointer-events:none;
+    }
 
-</style>
+    .bnav a:hover::after{
+      opacity:1;
+    }
+
+    /* MOBILE */
+
+    @media (max-width:600px){
+
+      body{
+        padding:1rem;
+      }
+
+      #header h1{
+        font-size:2rem;
+      }
+
+      #startpage h1{
+        font-size:2.2rem;
+      }
+
+      #controls{
+        top:10px;
+        gap:8px;
+      }
+
+      .control-button{
+        font-size:.85rem;
+        padding:.6rem .8rem;
+      }
+
+      .sound-wrapper{
+        width:95px;
+      }
+
+      .sound-button-img{
+        width:85px;
+        height:85px;
+      }
+
+      .bnav{
+        gap:12px;
+        padding:8px 12px;
+      }
+
+    }
+
+  </style>
 </head>
 
 <body>
 
-<!-- START PAGE -->
+  <!-- START PAGE -->
 
-<div id="startpage">
+  <div id="startpage">
     <h1>Welcome to Snoopy's Soundboard</h1>
     <button id="startButton">Start</button>
-</div>
+  </div>
 
-<!-- MAIN -->
+  <!-- MAIN -->
 
-<div id="mainContent">
+  <div id="mainContent">
 
     <div id="header">
-        <h1>Soundboard</h1>
+      <h1>Snoopy's Soundboard</h1>
     </div>
 
     <div id="controls">
-        <button id="toggleFavorites"
+
+      <button id="toggleFavorites"
         class="control-button favorites-toggle">
         ⭐ Favorites: OFF
-        </button>
+      </button>
 
-        <button id="toggleButton"
+      <button id="toggleButton"
         class="control-button overlap-toggle">
         🔇 Overlap: OFF
-        </button>
+      </button>
 
-        <button id="stopButton"
+      <button id="stopButton"
         class="control-button stop-button">
         ⏹️ Stop All Sounds
-        </button>
+      </button>
 
-        <input id="searchInput"
+      <input id="searchInput"
         type="text"
         placeholder="Search sounds...">
+
     </div>
 
     <div id="soundboard"></div>
 
-</div>
+  </div>
 
-<!-- FOOTER -->
+  <!-- FOOTER -->
 
-<div id="footer">
+  <div id="footer">
     <h2>@ThatOneGuy's Inc.</h2>
-</div>
+  </div>
 
-<!-- NAVBAR -->
+  <!-- NAVBAR -->
 
-<div class="bnav">
-  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/index.html" data="Home"><i class="fa-solid fa-house"></i></a>
+  <div class="bnav">
 
-  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Games.html" data="Games"><i class="fa-solid fa-gamepad"></i></a>
+    <a href="https://thatoneguy-67.github.io/Snoopys-Hub/index.html" data="Home">
+      <i class="fa-solid fa-house"></i>
+    </a>
 
-  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Movies.html" data="Movies"><i class="fa-solid fa-film"></i></a>
+    <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Games.html" data="Games">
+      <i class="fa-solid fa-gamepad"></i>
+    </a>
 
-  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Chat.html" data="Chat"><i class="fa-solid fa-message"></i></a>
+    <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Movies.html" data="Movies">
+      <i class="fa-solid fa-film"></i>
+    </a>
 
-  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Links.html" data="Links"><i class="fa-solid fa-link"></i></a>
+    <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Chat.html" data="Chat">
+      <i class="fa-solid fa-message"></i>
+    </a>
 
-  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Spotify.html" data="Music"><i class="fa-solid fa-music"></i></a>
+    <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Links.html" data="Links">
+      <i class="fa-solid fa-link"></i>
+    </a>
 
-  <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Tools.html" data="Tools"><i class="fa-solid fa-wrench"></i></a>
-</div>
+    <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Spotify.html" data="Music">
+      <i class="fa-solid fa-music"></i>
+    </a>
 
-<!-- SCRIPTS -->
+    <a href="https://thatoneguy-67.github.io/Snoopys-Hub/Pages/Tools.html" data="Tools">
+      <i class="fa-solid fa-wrench"></i>
+    </a>
 
-<script>
+  </div>
 
-document.getElementById('startButton')
-.addEventListener('click', function () {
+  <!-- SCRIPTS -->
 
-    document.getElementById('startpage').style.display = 'none';
-    document.getElementById('mainContent').style.display = 'block';
+  <script>
 
-});
+    const startPage = document.getElementById('startpage');
+    const mainContent = document.getElementById('mainContent');
 
-trackVisit("soundboard");
+    document.getElementById('startButton')
+      .addEventListener('click', () => {
 
-</script>
+        startPage.style.opacity = '0';
+
+        setTimeout(() => {
+          startPage.style.display = 'none';
+          mainContent.style.display = 'block';
+        }, 250);
+
+      });
+
+    trackVisit("soundboard");
+
+  </script>
 
 </body>
 </html>
