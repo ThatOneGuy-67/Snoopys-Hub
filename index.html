@@ -19,7 +19,7 @@
     </head>
 
     <body class="body">
-        <script src="notification-helper.js"></script>
+        <script type="module" src="notification-helper.js"></script>
 
         <canvas id="theme-bg"></canvas>
 
@@ -815,6 +815,62 @@
         });
 
         </script>
+        
+
+        <!-- POLL STUFF -->
+        <div id="pollsContainer"></div>
+
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+            import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+            const firebaseConfig = {
+            apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
+            authDomain: "snoopys-hub.firebaseapp.com",
+            projectId: "snoopys-hub",
+            storageBucket: "snoopys-hub.appspot.com",
+            messagingSenderId: "711107016273",
+            appId: "1:711107016273:web:c0680189aa61f6b9052a70"
+            };
+
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+
+            const container = document.getElementById("pollsContainer");
+
+            onSnapshot(collection(db, "polls"), (snap) => {
+            container.innerHTML = "";
+
+            snap.forEach(docSnap => {
+                const poll = docSnap.data();
+
+                const div = document.createElement("div");
+                div.className = "panel";
+
+                div.innerHTML = `
+                <h3>${poll.question}</h3>
+                ${poll.options.map((o, i) => `
+                    <button onclick="vote('${docSnap.id}', ${i})">
+                    ${o.text} (${o.votes || 0})
+                    </button>
+                `).join("")}
+                `;
+
+                container.appendChild(div);
+            });
+            });
+
+            window.vote = async (id, index) => {
+            const { doc, updateDoc, increment } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+
+            const ref = doc(db, "polls", id);
+
+            await updateDoc(ref, {
+                [`options.${index}.votes`]: increment(1)
+            });
+            };
+        </script>
+        <!-- POLL STUFF -->
 
         <div id="dashboard">
 
