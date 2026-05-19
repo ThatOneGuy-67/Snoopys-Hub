@@ -419,50 +419,130 @@
         /* ===================== UPDATE THEME BUTTONS ===================== */
         function updateThemeButtons() {
         const theme = localStorage.getItem("siteTheme") || "dark";
-        ["dark","light","neon","spring","summer","autumn","winter"].forEach(id => {
+    
+        [
+            "dark","light","neon",
+            "spring","summer","autumn","winter",
+            "andrew","dan","emma","johannes",
+            "kalen","luca","manuel","stefan"
+        ].forEach(id => {
             const btn = document.getElementById("theme-" + id);
             if (btn) btn.classList.remove("active");
         });
+    
         const activeBtn = document.getElementById("theme-" + theme);
         if (activeBtn) activeBtn.classList.add("active");
+    }
+    
+    function applyImageTheme(themeKey) {
+    
+        const theme = imageThemes[themeKey];
+        if (!theme) return;
+    
+        document.documentElement.classList.remove(
+            "theme-light",
+            "theme-neon",
+            "theme-spring",
+            "theme-summer",
+            "theme-autumn",
+            "theme-winter"
+        );
+    
+        document.documentElement.style.setProperty("--accent", theme.accent);
+        document.documentElement.style.setProperty("--accent-color", theme.accent);
+    
+        document.body.style.color = theme.text;
+    
+        document.querySelector(".body").style.background = `
+            linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.55)),
+            url("${BG_BASE + theme.file}")
+        `;
+    
+        document.querySelector(".body").style.backgroundSize = "cover";
+        document.querySelector(".body").style.backgroundPosition = "center";
+        document.querySelector(".body").style.backgroundAttachment = "fixed";
+    
+        document.querySelectorAll(".panel, .footer, #ui-card").forEach(el => {
+            el.style.background = "rgba(15,15,20,0.55)";
+            el.style.backdropFilter = "blur(12px)";
+            el.style.color = theme.text;
+            el.style.border = `1px solid ${theme.accent}33`;
+        });
+    
+        document.querySelectorAll("button, .footer a").forEach(el => {
+            el.style.color = theme.text;
+        });
+    
+        const title = document.querySelector(".title");
+    
+        if (title) {
+            title.style.color = theme.text;
+            title.style.textShadow = `0 0 18px ${theme.accent}`;
         }
-        function setTheme(theme) {
-        document.documentElement.classList.remove("theme-light","theme-neon","theme-spring","theme-summer","theme-autumn","theme-winter");
-
+    
+        themeSeason = null;
+    
+        if (themeCanvas) {
+            themeCanvas.style.display = "none";
+        }
+    }
+    
+    function setTheme(theme) {
+    
+        localStorage.setItem("siteTheme", theme);
+    
+        if (imageThemes[theme]) {
+            applyImageTheme(theme);
+            updateThemeButtons();
+            return;
+        }
+    
+        document.documentElement.style.removeProperty("--accent");
+        document.documentElement.style.removeProperty("--accent-color");
+    
+        document.querySelector(".body").style.background = "";
+    
+        document.querySelectorAll(".panel, .footer, #ui-card").forEach(el => {
+            el.style.background = "";
+            el.style.color = "";
+            el.style.border = "";
+        });
+    
+        document.querySelectorAll("button, .footer a").forEach(el => {
+            el.style.color = "";
+        });
+    
+        const title = document.querySelector(".title");
+    
+        if (title) {
+            title.style.textShadow = "";
+            title.style.color = "";
+        }
+    
+        document.documentElement.classList.remove(
+            "theme-light",
+            "theme-neon",
+            "theme-spring",
+            "theme-summer",
+            "theme-autumn",
+            "theme-winter"
+        );
+    
         if (theme === "light") document.documentElement.classList.add("theme-light");
         if (theme === "neon") document.documentElement.classList.add("theme-neon");
         if (theme === "spring") document.documentElement.classList.add("theme-spring");
         if (theme === "summer") document.documentElement.classList.add("theme-summer");
         if (theme === "autumn") document.documentElement.classList.add("theme-autumn");
         if (theme === "winter") document.documentElement.classList.add("theme-winter");
-
-        localStorage.setItem("siteTheme", theme);
+    
         setThemeBackground(theme);
-
-        // Update active button
-        ["dark","light","neon","spring","summer","autumn","winter"].forEach(id => {
-            const btn = document.getElementById("theme-" + id);
-            if (btn) btn.classList.remove("active");
-        });
-        const activeBtn = document.getElementById("theme-" + theme);
-        if (activeBtn) activeBtn.classList.add("active");
-        }
-
-        function loadTheme() {
-        const t = localStorage.getItem("siteTheme") || "dark";
-
-        document.documentElement.classList.remove("theme-light","theme-neon","theme-spring","theme-summer","theme-autumn","theme-winter");
-
-        if (t === "light") document.documentElement.classList.add("theme-light");
-        if (t === "neon") document.documentElement.classList.add("theme-neon");
-        if (t === "spring") document.documentElement.classList.add("theme-spring");
-        if (t === "summer") document.documentElement.classList.add("theme-summer");
-        if (t === "autumn") document.documentElement.classList.add("theme-autumn");
-        if (t === "winter") document.documentElement.classList.add("theme-winter");
-
-        setThemeBackground(t);
-        }
-
+        updateThemeButtons();
+    }
+    
+    function loadTheme() {
+        const savedTheme = localStorage.getItem("siteTheme") || "dark";
+        setTheme(savedTheme);
+    }
         /* ===================== BACKGROUNDS ===================== */
 
 
