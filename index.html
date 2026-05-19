@@ -174,6 +174,14 @@
                 <button id="theme-summer" onclick="setTheme('summer')">☀️ Summer</button>
                 <button id="theme-autumn" onclick="setTheme('autumn')">🍂 Autumn</button>
                 <button id="theme-winter" onclick="setTheme('winter')">❄️ Winter</button>
+                <button onclick="setTheme('andrew')">🌌 Neon Skyline</button>
+                <button onclick="setTheme('dan')">🌲 Misty Wilderness</button>
+                <button onclick="setTheme('emma')">🌸 Soft Bloom</button>
+                <button onclick="setTheme('johannes')">⛰️ Mountain Glow</button>
+                <button onclick="setTheme('kalen')">🌅 Golden Horizon</button>
+                <button onclick="setTheme('luca')">🌊 Ocean Dream</button>
+                <button onclick="setTheme('manuel')">🌆 Midnight Drive</button>
+                <button onclick="setTheme('stefan')">🌫️ Silent Fog</button>
             </div>
 
             <div class="settings-section">
@@ -455,7 +463,71 @@
         setThemeBackground(t);
         }
 
-        /* ===================== SEASONAL BACKGROUND ===================== */
+        /* ===================== BACKGROUNDS ===================== */
+
+
+        const BG_BASE = "https://cdn.jsdelivr.net/gh/ThatOneGuy-67/Snoopys-Hub@main/BG%20Pics/";
+        
+        const imageThemes = {
+            andrew: {
+                name: "🌌 Neon Skyline",
+                file: "andrew-nussbaum.jpg",
+                accent: "#6ea8ff",
+                text: "#eef4ff"
+            },
+        
+            dan: {
+                name: "🌲 Misty Wilderness",
+                file: "dan-otis.jpg",
+                accent: "#6dd39e",
+                text: "#f2fff7"
+            },
+        
+            emma: {
+                name: "🌸 Soft Bloom",
+                file: "emma-francis.jpg",
+                accent: "#ff9ecf",
+                text: "#fff5fb"
+            },
+        
+            johannes: {
+                name: "⛰️ Mountain Glow",
+                file: "johannes-plenio.jpg",
+                accent: "#7dc8ff",
+                text: "#eef9ff"
+            },
+        
+            kalen: {
+                name: "🌅 Golden Horizon",
+                file: "kalen-emsley.jpg",
+                accent: "#ffb347",
+                text: "#fff7ea"
+            },
+        
+            luca: {
+                name: "🌊 Ocean Dream",
+                file: "luca-micheli.jpg",
+                accent: "#57d4ff",
+                text: "#eefcff"
+            },
+        
+            manuel: {
+                name: "🌆 Midnight Drive",
+                file: "manuel-cosentino.jpg",
+                accent: "#c77dff",
+                text: "#f7f0ff"
+            },
+        
+            stefan: {
+                name: "🌫️ Silent Fog",
+                file: "stefan-stefancik.jpg",
+                accent: "#b8c4d6",
+                text: "#ffffff"
+            }
+        };
+
+
+        
         const themeCanvas = document.getElementById("theme-bg");
         const themeCtx = themeCanvas ? themeCanvas.getContext("2d") : null;
         let themeSeason = null;
