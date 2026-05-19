@@ -453,9 +453,13 @@
     
         document.body.style.color = theme.text;
     
+        const bgUrl = preloadedThemes[themeKey]?.src || (BG_BASE + theme.file);
+        
+        document.querySelector(".body").style.transition = "background 0.5s ease";
+        
         document.querySelector(".body").style.background = `
             linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.55)),
-            url("${BG_BASE + theme.file}")
+            url("${bgUrl}")
         `;
     
         document.querySelector(".body").style.backgroundSize = "cover";
@@ -547,7 +551,18 @@
 
 
         const BG_BASE = "https://cdn.jsdelivr.net/gh/ThatOneGuy-67/Snoopys-Hub@main/BG%20Pics/";
-        
+
+            const preloadedThemes = {};
+            
+            function preloadThemeImages() {
+                Object.entries(imageThemes).forEach(([key, theme]) => {
+                    const img = new Image();
+                    img.src = BG_BASE + theme.file;
+                    preloadedThemes[key] = img;
+                });
+            }
+            
+            window.addEventListener("load", preloadThemeImages);
         const imageThemes = {
             andrew: {
                 name: "🌌 Neon Skyline",
