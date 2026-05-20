@@ -165,23 +165,89 @@
             <!-- SETTINGS TAB -->
             <div id="tab-settings" class="ui-tab">
 
-            <div class="settings-section">
-                <h3>Theme</h3>
-                <button id="theme-dark" onclick="setTheme('dark')">Default</button>
-                <button id="theme-light" onclick="setTheme('light')">☀️ Light</button>
-                <button id="theme-neon" onclick="setTheme('neon')">🟪 Neon</button>
-                <button id="theme-spring" onclick="setTheme('spring')">🌱 Spring</button>
-                <button id="theme-summer" onclick="setTheme('summer')">☀️ Summer</button>
-                <button id="theme-autumn" onclick="setTheme('autumn')">🍂 Autumn</button>
-                <button id="theme-winter" onclick="setTheme('winter')">❄️ Winter</button>
-                <button onclick="setTheme('andrew')">🌌 Neon Skyline</button>
-                <button onclick="setTheme('dan')">🌲 Misty Wilderness</button>
-                <button onclick="setTheme('emma')">🌸 Soft Bloom</button>
-                <button onclick="setTheme('johannes')">⛰️ Mountain Glow</button>
-                <button onclick="setTheme('kalen')">🌅 Golden Horizon</button>
-                <button onclick="setTheme('luca')">🌊 Ocean Dream</button>
-                <button onclick="setTheme('manuel')">🌆 Midnight Drive</button>
-                <button onclick="setTheme('stefan')">🌫️ Silent Fog</button>
+                <div class="settings-section">
+                    <h3>Theme</h3>
+                
+                    <div class="theme-grid">
+                
+                        <button id="theme-dark" class="theme-preview"
+                            onclick="setTheme('dark')"
+                            style="background:
+                            linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)),
+                            url('https://i.pinimg.com/originals/11/cf/ee/11cfeef9eaa56c71a6eeb9933f933492.gif');">
+                            <span>Default</span>
+                        </button>
+                
+                        <button id="theme-light" class="theme-preview"
+                            onclick="setTheme('light')"
+                            style="background:
+                            linear-gradient(rgba(255,255,255,0.25), rgba(255,255,255,0.25)),
+                            url('https://i.pinimg.com/originals/11/cf/ee/11cfeef9eaa56c71a6eeb9933f933492.gif');">
+                            <span>Light</span>
+                        </button>
+                
+                        <button id="theme-neon" class="theme-preview"
+                            onclick="setTheme('neon')"
+                            style="background:
+                            linear-gradient(rgba(40,0,60,0.45), rgba(40,0,60,0.45)),
+                            url('https://i.pinimg.com/originals/11/cf/ee/11cfeef9eaa56c71a6eeb9933f933492.gif');">
+                            <span>Neon</span>
+                        </button>
+    
+                        <button id="theme-spring" onclick="setTheme('spring')">🌱 Spring</button>
+                        <button id="theme-summer" onclick="setTheme('summer')">☀️ Summer</button>
+                        <button id="theme-autumn" onclick="setTheme('autumn')">🍂 Autumn</button>
+                        <button id="theme-winter" onclick="setTheme('winter')">❄️ Winter</button>    
+                
+                        <button id="theme-andrew" class="theme-preview"
+                            onclick="setTheme('andrew')"
+                            style="background-image:url('https://cdn.jsdelivr.net/gh/ThatOneGuy-67/Snoopys-Hub@main/BG%20Pics/andrew-nussbaum.jpg');">
+                            <span>Neon Skyline</span>
+                        </button>
+                
+                        <button id="theme-dan" class="theme-preview"
+                            onclick="setTheme('dan')"
+                            style="background-image:url('https://cdn.jsdelivr.net/gh/ThatOneGuy-67/Snoopys-Hub@main/BG%20Pics/dan-otis.jpg');">
+                            <span>Misty Wilderness</span>
+                        </button>
+                
+                        <button id="theme-emma" class="theme-preview"
+                            onclick="setTheme('emma')"
+                            style="background-image:url('https://cdn.jsdelivr.net/gh/ThatOneGuy-67/Snoopys-Hub@main/BG%20Pics/emma-francis.jpg');">
+                            <span>Soft Bloom</span>
+                        </button>
+                
+                        <button id="theme-johannes" class="theme-preview"
+                            onclick="setTheme('johannes')"
+                            style="background-image:url('https://cdn.jsdelivr.net/gh/ThatOneGuy-67/Snoopys-Hub@main/BG%20Pics/johannes-plenio.jpg');">
+                            <span>Mountain Glow</span>
+                        </button>
+                
+                        <button id="theme-kalen" class="theme-preview"
+                            onclick="setTheme('kalen')"
+                            style="background-image:url('https://cdn.jsdelivr.net/gh/ThatOneGuy-67/Snoopys-Hub@main/BG%20Pics/kalen-emsley.jpg');">
+                            <span>Golden Horizon</span>
+                        </button>
+                
+                        <button id="theme-luca" class="theme-preview"
+                            onclick="setTheme('luca')"
+                            style="background-image:url('https://cdn.jsdelivr.net/gh/ThatOneGuy-67/Snoopys-Hub@main/BG%20Pics/luca-micheli.jpg');">
+                            <span>Ocean Dream</span>
+                        </button>
+                
+                        <button id="theme-manuel" class="theme-preview"
+                            onclick="setTheme('manuel')"
+                            style="background-image:url('https://cdn.jsdelivr.net/gh/ThatOneGuy-67/Snoopys-Hub@main/BG%20Pics/manuel-cosentino.jpg');">
+                            <span>Midnight Drive</span>
+                        </button>
+                
+                        <button id="theme-stefan" class="theme-preview"
+                            onclick="setTheme('stefan')"
+                            style="background-image:url('https://cdn.jsdelivr.net/gh/ThatOneGuy-67/Snoopys-Hub@main/BG%20Pics/stefan-stefancik.jpg');">
+                            <span>Silent Fog</span>
+                        </button>
+                
+                    </div>
             </div>
 
             <div class="settings-section">
@@ -233,6 +299,48 @@
 
         <!-- ===================== STYLES ===================== -->
         <style>
+
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+        
+        .theme-preview {
+            position: relative;
+            height: 90px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            background-size: cover !important;
+            background-position: center !important;
+            cursor: pointer;
+            transition: 0.25s ease;
+            padding: 0;
+        }
+        
+        .theme-preview:hover {
+            transform: scale(1.04);
+        }
+        
+        .theme-preview.active {
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 14px var(--accent);
+        }
+        
+        .theme-preview span {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            text-align: center;
+        }
 
         .settings-btn {
         position: fixed;
