@@ -1093,11 +1093,11 @@
         
 
         <!-- POLL STUFF -->
-        <div id="pollsContainer"></div>
+        <div id="pollsContainer" aria-live="polite"></div>
 
         <script type="module">
-            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-            import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+            import { getApp, getApps, initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+            import { getFirestore, collection, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
             const firebaseConfig = {
             apiKey: "AIzaSyA2qokCt--RrebnKxF7qfn5pHW5_R27SkM",
@@ -1108,41 +1108,122 @@
             appId: "1:711107016273:web:c0680189aa61f6b9052a70"
             };
 
-            const app = initializeApp(firebaseConfig);
+            const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
             const db = getFirestore(app);
 
             const container = document.getElementById("pollsContainer");
+            const polls = new Map();
+            let activePollId = null;
 
-            onSnapshot(collection(db, "polls"), (snap) => {
-            container.innerHTML = "";
+            function renderPoll() {
+                container.innerHTML = "";
+                container.style.display = "none";
 
-            snap.forEach(docSnap => {
-                const poll = docSnap.data();
+                if (!activePollId || activePollId === "none") return;
 
+                const poll = polls.get(activePollId);
+                if (!poll) return;
+
+                const options = Array.isArray(poll.options)
+                    ? poll.options
+                    : [
+                        { text: poll.A_label, votes: poll.A || 0 },
+                        { text: poll.B_label, votes: poll.B || 0 }
+                    ].filter(option => option.text);
+
+                if (!options.length) return;
+
+                const votedKey = `poll-voted-${activePollId}`;
+                const resetKey = `poll-reset-${activePollId}`;
+                if (poll.lastReset && localStorage.getItem(resetKey) !== String(poll.lastReset)) {
+                    localStorage.removeItem(votedKey);
+                    localStorage.setItem(resetKey, String(poll.lastReset));
+                }
+                const hasVoted = Boolean(localStorage.getItem(votedKey));
+                const dismissedKey = `poll-dismissed-${activePollId}`;
+                const wasDismissed = sessionStorage.getItem(dismissedKey) === "true";
+                localStorage.removeItem(dismissedKey);
+                if (!hasVoted) sessionStorage.removeItem(dismissedKey);
+                if (hasVoted && wasDismissed) return;
+                const totalVotes = options.reduce((total, option) => total + (Number(option.votes) || 0), 0);
                 const div = document.createElement("div");
-                div.className = "panel";
+                div.className = "panel poll-card";
 
                 div.innerHTML = `
-                <h3>${poll.question}</h3>
-                ${poll.options.map((o, i) => `
-                    <button onclick="vote('${docSnap.id}', ${i})">
-                    ${o.text} (${o.votes || 0})
+                ${hasVoted ? `<button class="poll-close" aria-label="Close poll" onclick="hidePoll('${activePollId}')">&times;</button>` : ""}
+                <h3>${poll.question || poll.title || "Poll"}</h3>
+                <div class="poll-options">
+                ${hasVoted ? options.map(o => {
+                    const votes = Number(o.votes) || 0;
+                    const percentage = totalVotes ? Math.round((votes / totalVotes) * 100) : 0;
+                    return `
+                    <div class="poll-result">
+                        <div class="poll-result-label"><span>${o.text || o.label}</span><strong>${votes} votes (${percentage}%)</strong></div>
+                        <div class="poll-bar"><span style="width:${percentage}%"></span></div>
+                    </div>`;
+                }).join("") : options.map((o, i) => `
+                    <button class="poll-option" ${hasVoted ? "disabled" : ""} onclick="vote('${activePollId}', ${i})">
+                    ${o.text || o.label}
                     </button>
                 `).join("")}
+                </div>
+                ${hasVoted ? '<p class="poll-voted">Thanks for voting!</p>' : ""}
                 `;
 
                 container.appendChild(div);
+                container.style.display = "flex";
+            }
+
+            onSnapshot(collection(db, "polls"), (snap) => {
+            polls.clear();
+            snap.forEach(docSnap => {
+                polls.set(docSnap.id, docSnap.data());
             });
+            renderPoll();
+            }, (error) => {
+                console.error("Poll load error:", error);
+                container.innerHTML = '<div class="panel poll-card"><p>Polls are temporarily unavailable.</p></div>';
+                container.style.display = "flex";
+            });
+
+            onSnapshot(doc(db, "site", "announcement"), (snap) => {
+                activePollId = snap.exists() ? (snap.data().activePollId || null) : null;
+                renderPoll();
+            }, (error) => {
+                console.error("Active poll load error:", error);
+                activePollId = null;
+                renderPoll();
             });
 
             window.vote = async (id, index) => {
-            const { doc, updateDoc, increment } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+            const votedKey = `poll-voted-${id}`;
+            if (localStorage.getItem(votedKey)) return;
+            localStorage.setItem(votedKey, "pending");
 
-            const ref = doc(db, "polls", id);
+            const { doc, getDoc, updateDoc, increment } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
 
-            await updateDoc(ref, {
-                [`options.${index}.votes`]: increment(1)
-            });
+            try {
+                const ref = doc(db, "polls", id);
+                const pollSnap = await getDoc(ref);
+                if (!pollSnap.exists()) {
+                    localStorage.removeItem(votedKey);
+                    return;
+                }
+
+                const poll = pollSnap.data();
+                const field = Array.isArray(poll.options) ? `options.${index}.votes` : (index === 0 ? "A" : "B");
+                await updateDoc(ref, { [field]: increment(1) });
+                localStorage.setItem(votedKey, "true");
+                renderPoll();
+            } catch (error) {
+                localStorage.removeItem(votedKey);
+                console.error("Poll vote error:", error);
+            }
+            };
+
+            window.hidePoll = (id) => {
+                sessionStorage.setItem(`poll-dismissed-${id}`, "true");
+                renderPoll();
             };
         </script>
         <!-- POLL STUFF -->
@@ -1269,6 +1350,119 @@
         margin-top: 0;
         font-weight: 500;
         color: #f2f2f2;
+        }
+
+        #pollsContainer {
+        position: fixed;
+        inset: 0;
+        z-index: 9000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(0,0,0,0.58);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        }
+
+        .poll-card {
+        width: min(560px, 100%);
+        margin: 0;
+        position: relative;
+        pointer-events: auto;
+        }
+
+        .poll-close {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: rgba(255,255,255,0.75);
+        font-size: 26px;
+        line-height: 1;
+        cursor: pointer;
+        }
+
+        .poll-close:hover {
+        background: rgba(255,255,255,0.12);
+        color: #fff;
+        }
+
+        .poll-card h3 {
+        margin: 0 0 16px;
+        font-weight: 500;
+        color: #f2f2f2;
+        }
+
+        .poll-options {
+        display: grid;
+        gap: 10px;
+        }
+
+        .poll-option {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid rgba(255,255,255,0.16);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.08);
+        color: #f2f2f2;
+        text-align: left;
+        cursor: pointer;
+        transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .poll-option:hover {
+        background: rgba(77,163,255,0.24);
+        border-color: rgba(77,163,255,0.7);
+        }
+
+        .poll-option:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        }
+
+        .poll-result {
+        display: grid;
+        gap: 7px;
+        }
+
+        .poll-result-label {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        color: #f2f2f2;
+        }
+
+        .poll-result-label strong {
+        color: #b9dcff;
+        font-size: 13px;
+        white-space: nowrap;
+        }
+
+        .poll-bar {
+        height: 9px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.12);
+        }
+
+        .poll-bar span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #4da3ff, #8bd5ff);
+        transition: width 0.35s ease;
+        }
+
+        .poll-voted {
+        margin: 14px 0 0;
+        color: #9fd0ff;
+        text-align: center;
         }
 
         /* Grid */
