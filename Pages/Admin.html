@@ -165,6 +165,8 @@
     <h3>📢 Site Announcements</h3>
     <input id="announcementTitle" placeholder="Announcement Title" />
     <textarea id="announcementText" placeholder="Announcement message..." style="width:240px;height:80px;padding:10px;margin:6px;border-radius:8px;border:none;resize:none;"></textarea>
+    <input id="announcementButtonText" placeholder="Button text (optional)" />
+    <input id="announcementButtonUrl" type="url" placeholder="Button link (https://...) (optional)" />
     <br>
     <button onclick="postAnnouncement()">Post Announcement</button>
     <button onclick="clearAnnouncement()" style="background:#ff4d4d;">Clear Announcement</button>
@@ -550,32 +552,42 @@ window.showTab = function(tabId) {
 window.postAnnouncement = async function() {
   const title = document.getElementById("announcementTitle").value.trim();
   const text = document.getElementById("announcementText").value.trim();
+  const buttonText = document.getElementById("announcementButtonText").value.trim();
+  const buttonUrl = document.getElementById("announcementButtonUrl").value.trim();
   
   if (!title || !text) {
     document.getElementById("announcementStatus").innerText = "Please fill in all fields";
     return;
   }
+
+  if (buttonUrl) {
+    try {
+      const parsedUrl = new URL(buttonUrl);
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) throw new Error();
+    } catch {
+      document.getElementById("announcementStatus").innerText = "Button link must be a valid http or https URL";
+      return;
+    }
+  }
   
   document.getElementById("announcementStatus").innerText = "⏳ Posting...";
   
   try {
-    console.log("Posting announcement:", { title, text });
+    const postedAt = Date.now();
+    const announcement = { title, text, buttonText, buttonUrl, postedAt };
+    console.log("Posting announcement:", announcement);
     await setDoc(doc(db, "site", "announcement"), {
-      title: title,
-      text: text,
-      postedAt: Date.now()
+      ...announcement
     }, { merge: true });
     
-    localStorage.setItem('siteAnnouncement', JSON.stringify({
-      title,
-      text,
-      postedAt: Date.now()
-    }));
+    localStorage.setItem('siteAnnouncement', JSON.stringify(announcement));
 
     console.log("Announcement posted successfully!");
     document.getElementById("announcementStatus").innerText = "✅ Announcement posted!";
     document.getElementById("announcementTitle").value = "";
     document.getElementById("announcementText").value = "";
+    document.getElementById("announcementButtonText").value = "";
+    document.getElementById("announcementButtonUrl").value = "";
   } catch (err) {
     console.error("Announcement error:", err);
     document.getElementById("announcementStatus").innerText = "❌ Failed: " + err.message;

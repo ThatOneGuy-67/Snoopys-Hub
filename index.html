@@ -27,6 +27,7 @@
                 <!-- ANNOUNCEMENT BANNER -->
         <div id="announcementBanner" class="hidden" style="position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,rgba(67, 67, 67, 0.95),rgba(67,67,67,0.95));padding:16px 12px 12px 12px;text-align:center;z-index:9999;cursor:pointer;box-shadow:0 4px 20px rgba(77,163,255,0.4);">
             <span class="bell">🔔</span><span id="announcementText" style="font-weight:bold;color:#fff;font-size:20px;text-shadow:0 1px 2px rgba(0,0,0,0.3);"></span>
+            <a id="announcementButton" class="hidden" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:8px 10px 0;padding:8px 14px;border-radius:6px;background:#4da3ff;color:#fff;font-weight:bold;text-decoration:none;"></a>
             <span style="margin-left:15px;color:rgba(255,255,255,0.8);font-size:13px;">(click to dismiss)</span>
         </div>
         <style>
@@ -61,6 +62,37 @@
             }
         </style>
         <script>
+            function renderAnnouncement(data) {
+                const banner = document.getElementById('announcementBanner');
+                const text = document.getElementById('announcementText');
+                const button = document.getElementById('announcementButton');
+                if (!banner || !text || !button) return;
+
+                if (!data || !data.title || !data.text) {
+                    banner.classList.add('hidden');
+                    return;
+                }
+
+                text.innerText = data.title + ': ' + data.text;
+                banner.classList.remove('hidden');
+                banner.onclick = () => banner.classList.add('hidden');
+
+                try {
+                    const url = new URL(data.buttonUrl);
+                    if (['http:', 'https:'].includes(url.protocol)) {
+                        button.href = url.href;
+                        button.innerText = data.buttonText || 'Open link';
+                        button.classList.remove('hidden');
+                        button.onclick = event => event.stopPropagation();
+                        return;
+                    }
+                } catch (e) {
+                    // Hide the link button when no valid URL was provided.
+                }
+                button.removeAttribute('href');
+                button.classList.add('hidden');
+            }
+
             // Load announcement on page load
             (async function() {
                 try {
@@ -84,21 +116,15 @@
                         const data = annSnap.data();
                         // Check for non-empty title and text (also handle empty strings)
                         if (data.title && data.text && data.title.toString().trim() !== "" && data.text.toString().trim() !== "") {
-                            const banner = document.getElementById("announcementBanner");
-                            const text = document.getElementById("announcementText");
-                            if (banner && text) {
-                                text.innerText = data.title + ": " + data.text;
-                                banner.classList.remove("hidden");
-                                banner.onclick = () => banner.classList.add("hidden");
-                                // Push dashboard down
-                                const dash = document.getElementById("dashboard");
-                                if (dash) dash.style.marginTop = "60px";
-                                
-                                // Show notification
-                                const settings = JSON.parse(localStorage.getItem("notifSettings") || "{}");
-                                if (settings.announce) {
-                                    showSiteNotification('📢 ' + data.title, data.text);
-                                }
+                            renderAnnouncement(data);
+                            // Push dashboard down
+                            const dash = document.getElementById("dashboard");
+                            if (dash) dash.style.marginTop = "60px";
+
+                            // Show notification
+                            const settings = JSON.parse(localStorage.getItem("notifSettings") || "{}");
+                            if (settings.announce) {
+                                showSiteNotification('📢 ' + data.title, data.text);
                             }
                         }
                     }
@@ -108,7 +134,6 @@
             window.addEventListener('storage', (event) => {
                 if (event.key !== 'siteAnnouncement') return;
                 const banner = document.getElementById('announcementBanner');
-                const text = document.getElementById('announcementText');
                 const dash = document.getElementById('dashboard');
 
                 if (!event.newValue) {
@@ -120,12 +145,8 @@
                 try {
                     const data = JSON.parse(event.newValue);
                     if (data && data.title && data.text) {
-                        if (banner && text) {
-                            text.innerText = data.title + ': ' + data.text;
-                            banner.classList.remove('hidden');
-                            banner.onclick = () => banner.classList.add('hidden');
-                            if (dash) dash.style.marginTop = '60px';
-                        }
+                        renderAnnouncement(data);
+                        if (dash) dash.style.marginTop = '60px';
                         const settings = JSON.parse(localStorage.getItem('notifSettings') || '{}');
                         if (settings.announce) {
                             showSiteNotification('📢 ' + data.title, data.text);
